@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account — Ledger Lift</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Calistoga:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Design Tokens ── */
+    :root {
+      --color-bg:          #0F172A;
+      --color-surface:     #1E293B;
+      --color-muted:       #272F42;
+      --color-border:      #334155;
+      --color-border-focus:#F59E0B;
+      --color-primary:     #F59E0B;
+      --color-primary-dark:#D97706;
+      --color-secondary:   #FBBF24;
+      --color-accent:      #8B5CF6;
+      --color-accent-dark: #7C3AED;
+      --color-fg:          #F8FAFC;
+      --color-fg-muted:    #94A3B8;
+      --color-fg-subtle:   #64748B;
+      --color-error:       #EF4444;
+      --color-success:     #22C55E;
+      --color-warning:     #F59E0B;
+
+      --font-display: 'Calistoga', Georgia, serif;
+      --font-body:    'Inter', system-ui, sans-serif;
+      --font-mono:    'JetBrains Mono', monospace;
+
+      --radius-sm:  6px;
+      --radius-md:  10px;
+      --radius-lg:  16px;
+      --radius-xl:  24px;
+
+      --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
+      --shadow-glow: 0 0 0 3px rgba(245,158,11,0.25);
+
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in:  cubic-bezier(0.55, 0, 1, 0.45);
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: var(--font-body);
+      background-color: var(--color-bg);
+      color: var(--color-fg);
+      min-height: 100dvh;
+      display: flex;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--color-primary); text-decoration: none; transition: color 150ms ease; }
+    a:hover { color: var(--color-secondary); }
+    a:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* ── Layout ── */
+    .page-layout {
+      display: flex;
+      width: 100%;
+      min-height: 100dvh;
+    }
+
+    /* ── Left Panel ── */
+    .brand-panel {
+      position: relative;
+      flex: 1 1 48%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 48px;
+      background: linear-gradient(145deg, #0F172A 0%, #1a2340 50%, #0d1526 100%);
+      overflow: hidden;
+    }
+
+    /* decorative grid */
+    .brand-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(245,158,11,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245,158,11,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse at 30% 50%, rgba(0,0,0,0.8) 0%, transparent 70%);
+    }
+
+    /* glow orbs */
+    .brand-panel::after {
+      content: '';
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(245,158,11,0.12) 0%, transparent 70%);
+      top: -80px;
+      right: -80px;
+      pointer-events: none;
+    }
+
+    .brand-orb-2 {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%);
+      bottom: 80px;
+      left: -60px;
+      pointer-events: none;
+    }
+
+    .brand-logo {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1;
+    }
+
+    .brand-logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .brand-logo-icon svg {
+      width: 22px;
+      height: 22px;
+      color: #0F172A;
+    }
+
+    .brand-logo-name {
+      font-family: var(--font-display);
+      font-size: 1.375rem;
+      color: var(--color-fg);
+      letter-spacing: -0.01em;
+    }
+
+    .brand-hero {
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(245,158,11,0.12);
+      border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 100px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--color-primary);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .brand-tag-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--color-primary);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .brand-headline {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3vw, 2.75rem);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--color-fg);
+      margin-bottom: 16px;
+    }
+
+    .brand-headline span {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .brand-subline {
+      font-size: 1rem;
+      color: var(--color-fg-muted);
+      line-height: 1.65;
+      max-width: 400px;
+      margin-bottom: 40px;
+    }
+
+    /* Stat pills */
+    .brand-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .stat-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      transition: border-color 200ms ease, background 200ms ease;
+    }
+
+    .stat-card:hover {
+      border-color: rgba(245,158,11,0.2);
+      background: rgba(245,158,11,0.04);
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(245,158,11,0.12);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--color-primary);
+    }
+
+    .stat-icon svg { width: 20px; height: 20px; }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--color-fg-subtle);
+      margin-bottom: 2px;
+    }
+
+    .stat-value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--color-fg);
+    }
+
+    /* Testimonial */
+    .brand-quote {
+      position: relative;
+      z-index: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-left: 3px solid var(--color-primary);
+      border-radius: var(--radius-md);
+      padding: 20px 20px 20px 22px;
+    }
+
+    .brand-quote-text {
+      font-size: 0.875rem;
+      color: var(--color-fg-muted);
+      line-height: 1.65;
+      font-style: italic;
+      margin-bottom: 12px;
+    }
+
+    .brand-quote-author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .author-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #0F172A;
+      flex-shrink: 0;
+    }
+
+    .author-name {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--color-fg);
+    }
+
+    .author-role {
+      font-size: 0.75rem;
+      color: var(--color-fg-subtle);
+    }
+
+    /* ── Right Panel (Form) ── */
+    .form-panel {
+      flex: 0 0 auto;
+      width: min(520px, 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 48px 56px;
+      background: var(--color-surface);
+      border-left: 1px solid var(--color-border);
+      overflow-y: auto;
+    }
+
+    .form-header {
+      margin-bottom: 32px;
+    }
+
+    .form-title {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      letter-spacing: -0.02em;
+      color: var(--color-fg);
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+
+    .form-subtitle {
+      font-size: 0.9375rem;
+      color: var(--color-fg-muted);
+    }
+
+    .form-subtitle a {
+      font-weight: 500;
+    }
+
+    /* Google Button */
+    .btn-google {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 11px 20px;
+      background: transparent;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--color-fg);
+      cursor: pointer;
+      transition: border-color 200ms ease, background 200ms ease;
+    }
+
+    .btn-google:hover {
+      border-color: rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .btn-google:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .btn-google:active { transform: scale(0.99); }
+
+    .btn-google svg { flex-shrink: 0; }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+      color: var(--color-fg-subtle);
+      font-size: 0.8125rem;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--color-border);
+    }
+
+    /* Form */
+    form { display: flex; flex-direction: column; gap: 20px; }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--color-fg);
+    }
+
+    label .required {
+      color: var(--color-primary);
+      margin-left: 2px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      height: 44px;
+      padding: 0 16px;
+      background: var(--color-muted);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      color: var(--color-fg);
+      outline: none;
+      transition: border-color 200ms ease, box-shadow 200ms ease;
+      -webkit-appearance: none;
+    }
+
+    input[type="password"] { padding-right: 48px; }
+
+    input::placeholder { color: var(--color-fg-subtle); }
+
+    input:focus {
+      border-color: var(--color-border-focus);
+      box-shadow: var(--shadow-glow);
+    }
+
+    input:focus-visible { border-color: var(--color-border-focus); }
+
+    input[aria-invalid="true"] {
+      border-color: var(--color-error);
+      box-shadow: 0 0 0 3px rgba(239,68,68,0.2);
+    }
+
+    /* password toggle */
+    .toggle-password {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--color-fg-subtle);
+      display: flex;
+      align-items: center;
+      padding: 4px;
+      border-radius: var(--radius-sm);
+      transition: color 150ms ease;
+    }
+
+    .toggle-password:hover { color: var(--color-fg); }
+    .toggle-password:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .toggle-password svg { width: 18px; height: 18px; }
+
+    /* helper & error text */
+    .field-hint {
+      font-size: 0.75rem;
+      color: var(--color-fg-subtle);
+    }
+
+    .field-error {
+      font-size: 0.75rem;
+      color: var(--color-error);
+      display: none;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .field-error.visible { display: flex; }
+    .field-error svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* Password strength */
+    .strength-bar {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .strength-segment {
+      flex: 1;
+      height: 3px;
+      border-radius: 100px;
+      background: var(--color-border);
+      transition: background 300ms ease;
+    }
+
+    .strength-segment.weak   { background: var(--color-error); }
+    .strength-segment.fair   { background: var(--color-warning); }
+    .strength-segment.strong { background: var(--color-success); }
+
+    .strength-label {
+      font-size: 0.75rem;
+      margin-top: 4px;
+    }
+
+    .strength-label.weak   { color: var(--color-error); }
+    .strength-label.fair   { color: var(--color-warning); }
+    .strength-label.strong { color: var(--color-success); }
+
+    /* Checkbox */
+    .checkbox-field {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .checkbox-field input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      border: 1.5px solid var(--color-border);
+      border-radius: 4px;
+      background: var(--color-muted);
+      cursor: pointer;
+      margin-top: 1px;
+      position: relative;
+      transition: border-color 150ms ease, background 150ms ease;
+    }
+
+    .checkbox-field input[type="checkbox"]:checked {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+    }
+
+    .checkbox-field input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 1px;
+      width: 8px;
+      height: 11px;
+      border: 2px solid #0F172A;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg);
+    }
+
+    .checkbox-field input[type="checkbox"]:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+      box-shadow: none;
+    }
+
+    .checkbox-label {
+      font-size: 0.8125rem;
+      color: var(--color-fg-muted);
+      line-height: 1.55;
+    }
+
+    /* Submit button */
+    .btn-submit {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      height: 48px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, #E59400 100%);
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #0F172A;
+      cursor: pointer;
+      letter-spacing: -0.01em;
+      transition: opacity 200ms ease, transform 150ms ease, box-shadow 200ms ease;
+      box-shadow: 0 4px 16px rgba(245,158,11,0.25);
+    }
+
+    .btn-submit:hover {
+      opacity: 0.92;
+      box-shadow: 0 6px 24px rgba(245,158,11,0.35);
+    }
+
+    .btn-submit:active { transform: scale(0.985); }
+
+    .btn-submit:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-submit .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(15,23,42,0.3);
+      border-top-color: #0F172A;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    .btn-submit.loading .spinner { display: block; }
+    .btn-submit.loading .btn-text { display: none; }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Trust badges */
+    .trust-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 8px;
+    }
+
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.6875rem;
+      color: var(--color-fg-subtle);
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+
+    .trust-item svg {
+      width: 13px;
+      height: 13px;
+      color: var(--color-fg-subtle);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 1024px) {
+      .brand-panel { flex: 1 1 40%; padding: 40px; }
+      .form-panel { padding: 40px 40px; }
+    }
+
+    @media (max-width: 768px) {
+      .page-layout { flex-direction: column; }
+
+      .brand-panel {
+        flex: none;
+        padding: 32px 24px 28px;
+        min-height: auto;
+      }
+
+      .brand-stats { flex-direction: row; flex-wrap: wrap; }
+      .stat-card { flex: 1 1 calc(50% - 8px); }
+
+      .brand-hero { margin: 24px 0; }
+
+      .brand-quote { display: none; }
+
+      .form-panel {
+        width: 100%;
+        padding: 32px 24px 48px;
+        border-left: none;
+        border-top: 1px solid var(--color-border);
+      }
+
+      .field-row { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 375px) {
+      .brand-panel { padding: 24px 20px; }
+      .form-panel { padding: 28px 20px 40px; }
+      .stat-card { flex: 1 1 100%; }
+    }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-layout">
+
+    <!-- ── Left Brand Panel ── -->
+    <section class="brand-panel" aria-label="Ledger Lift brand information">
+      <div class="brand-orb-2" aria-hidden="true"></div>
+
+      <!-- Logo -->
+      <div class="brand-logo">
+        <div class="brand-logo-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <span class="brand-logo-name">Ledger Lift</span>
+      </div>
+
+      <!-- Hero copy -->
+      <div class="brand-hero">
+        <div class="brand-tag">
+          <span class="brand-tag-dot" aria-hidden="true"></span>
+          Trusted by 12,000+ businesses
+        </div>
+        <h1 class="brand-headline">
+          Your finances,<br />
+          <span>finally under control</span>
+        </h1>
+        <p class="brand-subline">
+          Ledger Lift gives you real-time bookkeeping, automated reconciliation, and clarity you can act on — all in one clean workspace.
+        </p>
+
+        <div class="brand-stats" role="list">
+          <div class="stat-card" role="listitem">
+            <div class="stat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                <polyline points="17 6 23 6 23 12"/>
+              </svg>
+            </div>
+            <div>
+              <div class="stat-label">Average revenue visibility</div>
+              <div class="stat-value">47% faster closes</div>
+            </div>
+          </div>
+
+          <div class="stat-card" role="listitem">
+            <div class="stat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+            </div>
+            <div>
+              <div class="stat-label">Time saved per month</div>
+              <div class="stat-value">18 hrs on average</div>
+            </div>
+          </div>
+
+          <div class="stat-card" role="listitem">
+            <div class="stat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <polyline points="9 12 11 14 15 10"/>
+              </svg>
+            </div>
+            <div>
+              <div class="stat-label">Security standard</div>
+              <div class="stat-value">SOC 2 Type II certified</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial -->
+      <blockquote class="brand-quote">
+        <p class="brand-quote-text">
+          "Ledger Lift replaced three separate tools for us. The automated reconciliation alone saves our controller two full days every month."
+        </p>
+        <div class="brand-quote-author">
+          <div class="author-avatar" aria-hidden="true">SR</div>
+          <div>
+            <div class="author-name">Sarah Reyes</div>
+            <div class="author-role">CFO, Northframe Systems</div>
+          </div>
+        </div>
+      </blockquote>
+    </section>
+
+    <!-- ── Right Form Panel ── -->
+    <main class="form-panel" aria-label="Registration form">
+      <div class="form-header">
+        <h2 class="form-title">Create your account</h2>
+        <p class="form-subtitle">
+          Already have an account? <a href="#" aria-label="Sign in to your Ledger Lift account">Sign in</a>
+        </p>
+      </div>
+
+      <!-- Google OAuth -->
+      <button type="button" class="btn-google" aria-label="Continue registration with Google">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+          <path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/>
+          <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <div class="divider" aria-hidden="true">or register with email</div>
+
+      <form id="register-form" novalidate aria-label="Create a new Ledger Lift account">
+
+        <!-- Name row -->
+        <div class="field-row">
+          <div class="field">
+            <label for="first-name">
+              First name<span class="required" aria-hidden="true">*</span>
+            </label>
+            <input
+              type="text"
+              id="first-name"
+              name="firstName"
+              autocomplete="given-name"
+              placeholder="Alex"
+              required
+              aria-required="true"
+              aria-describedby="first-name-error"
+            />
+            <span id="first-name-error" class="field-error" role="alert">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              First name is required
+            </span>
+          </div>
+
+          <div class="field">
+            <label for="last-name">
+              Last name<span class="required" aria-hidden="true">*</span>
+            </label>
+            <input
+              type="text"
+              id="last-name"
+              name="lastName"
+              autocomplete="family-name"
+              placeholder="Morgan"
+              required
+              aria-required="true"
+              aria-describedby="last-name-error"
+            />
+            <span id="last-name-error" class="field-error" role="alert">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Last name is required
+            </span>
+          </div>
+        </div>
+
+        <!-- Work email -->
+        <div class="field">
+          <label for="email">
+            Work email<span class="required" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            autocomplete="email"
+            inputmode="email"
+            placeholder="alex@company.com"
+            required
+            aria-required="true"
+            aria-describedby="email-error"
+          />
+          <span id="email-error" class="field-error" role="alert">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Enter a valid email address
+          </span>
+        </div>
+
+        <!-- Password -->
+        <div class="field">
+          <label for="password">
+            Password<span class="required" aria-hidden="true">*</span>
+          </label>
+          <div class="input-wrap">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              autocomplete="new-password"
+              placeholder="Create a strong password"
+              required
+              aria-required="true"
+              aria-describedby="password-strength-label password-error"
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              aria-label="Show password"
+              data-target="password"
+            >
+              <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+          <!-- Strength meter -->
+          <div class="strength-bar" aria-hidden="true">
+            <div class="strength-segment" id="seg-1"></div>
+            <div class="strength-segment" id="seg-2"></div>
+            <div class="strength-segment" id="seg-3"></div>
+            <div class="strength-segment" id="seg-4"></div>
+          </div>
+          <span id="password-strength-label" class="strength-label" aria-live="polite"></span>
+          <span id="password-error" class="field-error" role="alert">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Password must be at least 8 characters
+          </span>
+        </div>
+
+        <!-- Confirm password -->
+        <div class="field">
+          <label for="confirm-password">
+            Confirm password<span class="required" aria-hidden="true">*</span>
+          </label>
+          <div class="input-wrap">
+            <input
+              type="password"
+              id="confirm-password"
+              name="confirmPassword"
+              autocomplete="new-password"
+              placeholder="Repeat your password"
+              required
+              aria-required="true"
+              aria-describedby="confirm-error"
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              aria-label="Show confirm password"
+              data-target="confirm-password"
+            >
+              <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+          <span id="confirm-error" class="field-error" role="alert">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Passwords do not match
+          </span>
+        </div>
+
+        <!-- Terms -->
+        <label class="checkbox-field">
+          <input
+            type="checkbox"
+            id="terms"
+            name="terms"
+            required
+            aria-required="true"
+            aria-describedby="terms-error"
+          />
+          <span class="checkbox-label">
+            I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. Ledger Lift may send me product updates.
+          </span>
+        </label>
+        <span id="terms-error" class="field-error" role="alert" style="margin-top:-12px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          You must agree to continue
+        </span>
+
+        <!-- Submit -->
+        <button type="submit" class="btn-submit" id="submit-btn">
+          <div class="spinner" aria-hidden="true"></div>
+          <span class="btn-text">Create free account</span>
+          <svg class="btn-text" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+
+        <!-- Trust row -->
+        <div class="trust-row" aria-label="Security and trial information">
+          <span class="trust-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            256-bit SSL
+          </span>
+          <span class="trust-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            SOC 2 Certified
+          </span>
+          <span class="trust-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            14-day free trial
+          </span>
+        </div>
+
+      </form>
+    </main>
+  </div>
+
+  <script>
+    /* ── Password strength ── */
+    const passwordInput = document.getElementById('password');
+    const segments = [
+      document.getElementById('seg-1'),
+      document.getElementById('seg-2'),
+      document.getElementById('seg-3'),
+      document.getElementById('seg-4'),
+    ];
+    const strengthLabel = document.getElementById('password-strength-label');
+
+    function getStrength(val) {
+      if (!val) return 0;
+      let score = 0;
+      if (val.length >= 8)  score++;
+      if (val.length >= 12) score++;
+      if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
+      if (/[0-9]/.test(val) && /[^A-Za-z0-9]/.test(val)) score++;
+      return score;
+    }
+
+    passwordInput.addEventListener('input', () => {
+      const strength = getStrength(passwordInput.value);
+      const classes = ['', 'weak', 'fair', 'fair', 'strong'];
+      const labels  = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+
+      segments.forEach((seg, i) => {
+        seg.className = 'strength-segment';
+        if (i < strength && strength > 0) seg.classList.add(classes[strength]);
+      });
+
+      strengthLabel.textContent = passwordInput.value ? labels[strength] : '';
+      strengthLabel.className = 'strength-label ' + (classes[strength] || '');
+    });
+
+    /* ── Toggle password visibility ── */
+    document.querySelectorAll('.toggle-password').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.dataset.target;
+        const input = document.getElementById(targetId);
+        const isHidden = input.type === 'password';
+
+        input.type = isHidden ? 'text' : 'password';
+        btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+        btn.querySelector('.eye-icon').style.display    = isHidden ? 'none'  : '';
+        btn.querySelector('.eye-off-icon').style.display = isHidden ? '' : 'none';
+      });
+    });
+
+    /* ── Field validation helpers ── */
+    function setError(inputEl, errorEl, message) {
+      inputEl.setAttribute('aria-invalid', 'true');
+      errorEl.textContent = '';
+      // re-insert icon + message
+      errorEl.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:13px;height:13px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        ${message}`;
+      errorEl.classList.add('visible');
+    }
+
+    function clearError(inputEl, errorEl) {
+      inputEl.removeAttribute('aria-invalid');
+      errorEl.classList.remove('visible');
+    }
+
+    /* ── Inline blur validation ── */
+    const firstName = document.getElementById('first-name');
+    const firstErr  = document.getElementById('first-name-error');
+    firstName.addEventListener('blur', () => {
+      firstName.value.trim()
+        ? clearError(firstName, firstErr)
+        : setError(firstName, firstErr, 'First name is required');
+    });
+
+    const lastName = document.getElementById('last-name');
+    const lastErr  = document.getElementById('last-name-error');
+    lastName.addEventListener('blur', () => {
+      lastName.value.trim()
+        ? clearError(lastName, lastErr)
+        : setError(lastName, lastErr, 'Last name is required');
+    });
+
+    const emailInput = document.getElementById('email');
+    const emailErr   = document.getElementById('email-error');
+    emailInput.addEventListener('blur', () => {
+      const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim());
+      valid
+        ? clearError(emailInput, emailErr)
+        : setError(emailInput, emailErr, 'Enter a valid email address');
+    });
+
+    const passErr = document.getElementById('password-error');
+    passwordInput.addEventListener('blur', () => {
+      passwordInput.value.length >= 8
+        ? clearError(passwordInput, passErr)
+        : setError(passwordInput, passErr, 'Password must be at least 8 characters');
+    });
+
+    const confirmInput = document.getElementById('confirm-password');
+    const confirmErr   = document.getElementById('confirm-error');
+    confirmInput.addEventListener('blur', () => {
+      confirmInput.value === passwordInput.value
+        ? clearError(confirmInput, confirmErr)
+        : setError(confirmInput, confirmErr, 'Passwords do not match');
+    });
+
+    const termsCheck = document.getElementById('terms');
+    const termsErr   = document.getElementById('terms-error');
+    termsCheck.addEventListener('change', () => {
+      termsCheck.checked
+        ? termsErr.classList.remove('visible')
+        : termsErr.classList.add('visible');
+    });
+
+    /* ── Form submission ── */
+    const form      = document.getElementById('register-form');
+    const submitBtn = document.getElementById('submit-btn');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      let valid = true;
+
+      if (!firstName.value.trim()) { setError(firstName, firstErr, 'First name is required'); valid = false; }
+      if (!lastName.value.trim())  { setError(lastName,  lastErr,  'Last name is required');  valid = false; }
+
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim());
+      if (!emailOk) { setError(emailInput, emailErr, 'Enter a valid email address'); valid = false; }
+
+      if (passwordInput.value.length < 8) { setError(passwordInput, passErr, 'Password must be at least 8 characters'); valid = false; }
+
+      if (confirmInput.value !== passwordInput.value) { setError(confirmInput, confirmErr, 'Passwords do not match'); valid = false; }
+
+      if (!termsCheck.checked) { termsErr.classList.add('visible'); valid = false; }
+
+      if (!valid) {
+        // Focus first invalid field
+        const firstInvalid = form.querySelector('[aria-invalid="true"]');
+        if (firstInvalid) firstInvalid.focus();
+        return;
+      }
+
+      // Simulate async submit
+      submitBtn.classList.add('loading');
+      submitBtn.disabled = true;
+
+      setTimeout(() => {
+        submitBtn.classList.remove('loading');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          <span class="btn-text">Account created!</span>
+        `;
+        submitBtn.style.background = 'linear-gradient(135deg, #22C55E, #16A34A)';
+      }, 1800);
+    });
+  </script>
+</body>
+</html>
