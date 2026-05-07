@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VØRGE — Cross-Chain DeFi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-void:    #070508;
+    --bg-surface: #0D0A0C;
+    --bg-raised:  #141014;
+    --border:     rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.15);
+    --text-primary:   #EEE8EC;
+    --text-secondary: #877A82;
+    --text-muted:     #433842;
+    --accent:     #B91C2C;
+    --accent-bright: #D4203C;
+    --accent-dim: rgba(185,28,44,0.18);
+    --accent-glow: 0 0 40px rgba(185,28,44,0.18), 0 0 80px rgba(185,28,44,0.09);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-void);
+    color: var(--text-primary);
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 400;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg-void); }
+  ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+  /* ─── UTILITY ─── */
+  .label {
+    font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--accent); font-weight: 500;
+  }
+  .reveal { opacity: 0; transform: translateY(50px); }
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 clamp(1.5rem, 5vw, 5rem);
+  }
+
+  /* ─── NAVBAR ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 1.5rem 0;
+    transition: background 0.4s ease, padding 0.4s ease;
+  }
+  nav.scrolled {
+    background: rgba(7,5,8,0.85);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 0;
+  }
+  .nav-inner {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem; letter-spacing: 0.08em;
+    color: var(--text-primary);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .nav-logo span {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--accent);
+  }
+  .nav-links {
+    display: flex; gap: 2.5rem; list-style: none;
+  }
+  .nav-links a {
+    font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--text-secondary); text-decoration: none;
+    transition: color 0.25s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0;
+    width: 0; height: 1px; background: var(--accent);
+    transition: width 0.3s ease;
+  }
+  .nav-links a:hover { color: var(--text-primary); }
+  .nav-links a:hover::after { width: 100%; }
+  .btn-nav {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-primary);
+    background: transparent;
+    border: 1px solid var(--border-hover);
+    padding: 0.65rem 1.4rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.25s, box-shadow 0.25s, color 0.25s;
+  }
+  .btn-nav:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 20px var(--accent-dim);
+  }
+
+  /* ─── HERO BACKGROUND ─── */
+  .hero-bg {
+    position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  }
+  .hero-bg::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(185,28,44,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 80% 80%, rgba(185,28,44,0.05) 0%, transparent 60%);
+  }
+  .grid-lines {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 80px 80px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 0%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 0%, transparent 80%);
+  }
+  .orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(80px); pointer-events: none;
+    animation: orbFloat 8s ease-in-out infinite;
+  }
+  .orb-1 {
+    width: 600px; height: 600px;
+    top: -200px; left: 50%; transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(185,28,44,0.12) 0%, transparent 70%);
+    animation-delay: 0s;
+  }
+  .orb-2 {
+    width: 300px; height: 300px;
+    top: 40%; right: 5%;
+    background: radial-gradient(circle, rgba(185,28,44,0.06) 0%, transparent 70%);
+    animation-delay: -3s;
+  }
+  @keyframes orbFloat {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-30px); }
+  }
+  .orb-2 { animation: orbFloat2 10s ease-in-out infinite; }
+  @keyframes orbFloat2 {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-20px) scale(1.05); }
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding: clamp(8rem, 14vw, 14rem) 0 clamp(6rem, 10vw, 10rem);
+  }
+  .hero-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+  .hero-left { position: relative; }
+  .hero-eyebrow { margin-bottom: 1.5rem; opacity: 0; }
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 9vw, 9rem);
+    letter-spacing: -0.02em;
+    line-height: 0.9;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+  }
+  .hero-title .line { display: block; overflow: hidden; }
+  .hero-title .line-inner { display: block; opacity: 0; transform: translateY(100%); }
+  .hero-title em {
+    font-style: normal;
+    -webkit-text-stroke: 1px var(--text-muted);
+    color: transparent;
+  }
+  .hero-desc {
+    font-size: 0.85rem; line-height: 1.8;
+    color: var(--text-secondary);
+    max-width: 42ch;
+    margin-bottom: 2.5rem;
+    opacity: 0;
+  }
+  .hero-ctas { display: flex; gap: 1rem; opacity: 0; }
+  .btn-primary {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 0.9rem 2rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.25s, box-shadow 0.25s, transform 0.2s;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-primary:hover {
+    background: var(--accent-bright);
+    box-shadow: var(--accent-glow);
+    transform: translateY(-2px);
+  }
+  .btn-ghost {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    padding: 0.9rem 2rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.25s, color 0.25s;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); }
+
+  /* ─── GLASSMORPHISM CARDS (HERO RIGHT) ─── */
+  .hero-right {
+    position: relative;
+    display: flex; flex-direction: column; gap: 1rem;
+    opacity: 0;
+  }
+  .glass-card {
+    background: rgba(255,255,255,0.035);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 1.5rem 1.75rem;
+    transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .glass-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .glass-card:hover {
+    border-color: rgba(185,28,44,0.3);
+    box-shadow: 0 0 30px rgba(185,28,44,0.1), 0 8px 40px rgba(0,0,0,0.4);
+    transform: translateY(-4px);
+  }
+  .glass-card-main {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .asset-info { display: flex; flex-direction: column; gap: 0.25rem; }
+  .asset-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem; letter-spacing: 0.05em;
+    color: var(--text-primary);
+  }
+  .asset-subtitle {
+    font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .asset-price {
+    text-align: right;
+  }
+  .price-value {
+    font-size: 1.3rem; font-weight: 500;
+    color: var(--text-primary);
+  }
+  .price-change {
+    font-size: 0.7rem; letter-spacing: 0.05em;
+    margin-top: 2px;
+  }
+  .price-change.up { color: #22c55e; }
+  .price-change.down { color: var(--accent-bright); }
+  .spark-bar {
+    display: flex; gap: 2px; align-items: flex-end; height: 28px;
+  }
+  .spark-bar span {
+    flex: 1; background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    transition: background 0.3s;
+  }
+  .glass-card:hover .spark-bar span { background: rgba(185,28,44,0.35); }
+  .spark-bar span.active { background: var(--accent) !important; }
+  .card-wide {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+  }
+  .mini-stat { display: flex; flex-direction: column; gap: 0.25rem; }
+  .mini-stat-label { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); }
+  .mini-stat-value { font-size: 1rem; font-weight: 500; color: var(--text-primary); }
+  .live-dot {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: #22c55e; margin-bottom: 0.75rem;
+  }
+  .live-dot::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: #22c55e;
+    border-radius: 50%;
+    animation: pulse 1.8s ease-in-out infinite;
+    box-shadow: 0 0 6px #22c55e;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+  .card-accent-line {
+    position: absolute; top: 0; left: 1.75rem; right: 1.75rem;
+    height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.5;
+  }
+
+  /* ─── STATS STRIP ─── */
+  .stats-strip {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 0;
+  }
+  .stats-inner {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .stat-item {
+    text-align: center;
+    padding: 0 2rem;
+    border-right: 1px solid var(--border);
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    color: var(--text-primary);
+    line-height: 1;
+    display: block;
+  }
+  .stat-label {
+    font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-muted); margin-top: 0.4rem;
+  }
+
+  /* ─── SECTION ─── */
+  section { padding: clamp(6rem, 12vw, 12rem) 0; }
+
+  /* ─── FEATURES ─── */
+  .section-header { margin-bottom: 4rem; }
+  .section-header .label { margin-bottom: 1rem; }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.8rem, 5vw, 5rem);
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+    color: var(--text-primary);
+  }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .feature-card {
+    background: var(--bg-surface);
+    padding: 2.5rem;
+    transition: background 0.3s;
+    position: relative;
+  }
+  .feature-card:hover { background: var(--bg-raised); }
+  .feature-icon {
+    width: 44px; height: 44px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    color: var(--accent);
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .feature-card:hover .feature-icon {
+    border-color: rgba(185,28,44,0.4);
+    box-shadow: 0 0 20px var(--accent-dim);
+  }
+  .feature-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem; letter-spacing: 0.03em;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+  }
+  .feature-desc {
+    font-size: 0.78rem; line-height: 1.8;
+    color: var(--text-secondary);
+    max-width: 38ch;
+  }
+  .feature-tag {
+    margin-top: 1.5rem;
+    display: inline-block;
+    font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 0.3rem 0.8rem;
+    border-radius: 3px;
+  }
+
+  /* ─── PROTOCOL ─── */
+  .protocol { background: var(--bg-surface); }
+  .protocol-inner {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 6rem; align-items: center;
+  }
+  .protocol-steps { display: flex; flex-direction: column; gap: 0; }
+  .step-item {
+    display: flex; gap: 1.5rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+    opacity: 0.4;
+    transition: opacity 0.3s;
+    cursor: default;
+  }
+  .step-item:hover { opacity: 1; }
+  .step-item:last-child { border-bottom: none; }
+  .step-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem; color: var(--text-muted);
+    line-height: 1; min-width: 2rem;
+  }
+  .step-content { flex: 1; }
+  .step-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem; letter-spacing: 0.03em;
+    color: var(--text-primary); margin-bottom: 0.4rem;
+  }
+  .step-desc { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.8; }
+  .protocol-visual {
+    display: flex; flex-direction: column; gap: 1rem;
+    position: relative;
+  }
+  .chain-pill {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .chain-pill:hover { border-color: rgba(185,28,44,0.3); transform: translateX(6px); }
+  .chain-name { font-size: 0.75rem; font-weight: 500; color: var(--text-primary); }
+  .chain-val { font-size: 0.7rem; color: var(--text-secondary); }
+  .chain-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ─── CTA ─── */
+  .cta-section {
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 80% at 50% 100%, rgba(185,28,44,0.08) 0%, transparent 70%);
+  }
+  .cta-eyebrow { margin-bottom: 1.5rem; }
+  .cta-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3.5rem, 7vw, 7rem);
+    letter-spacing: -0.02em; line-height: 0.92;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+  }
+  .cta-title em { font-style: normal; color: var(--accent); }
+  .cta-sub {
+    font-size: 0.85rem; color: var(--text-secondary);
+    max-width: 50ch; margin: 0 auto 2.5rem;
+    line-height: 1.8;
+  }
+  .cta-actions { display: flex; gap: 1rem; justify-content: center; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 3rem 0 2rem;
+  }
+  .footer-inner {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 3rem; margin-bottom: 3rem;
+  }
+  .footer-brand { display: flex; flex-direction: column; gap: 1rem; }
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem; letter-spacing: 0.08em;
+    color: var(--text-primary);
+  }
+  .footer-tagline { font-size: 0.72rem; color: var(--text-secondary); line-height: 1.7; max-width: 28ch; }
+  .footer-col-title {
+    font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1rem;
+  }
+  .footer-links { display: flex; flex-direction: column; gap: 0.6rem; list-style: none; }
+  .footer-links a {
+    font-size: 0.72rem; color: var(--text-secondary);
+    text-decoration: none; transition: color 0.25s;
+  }
+  .footer-links a:hover { color: var(--text-primary); }
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-copy { font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.08em; }
+  .footer-socials { display: flex; gap: 1rem; }
+  .footer-socials a {
+    font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-muted); text-decoration: none; transition: color 0.25s;
+  }
+  .footer-socials a:hover { color: var(--text-primary); }
+
+  /* ─── TICKER ─── */
+  .ticker-wrap {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    padding: 0.75rem 0;
+    background: var(--bg-surface);
+  }
+  .ticker-track {
+    display: flex; gap: 3rem;
+    white-space: nowrap;
+    animation: ticker 30s linear infinite;
+  }
+  .ticker-item {
+    display: flex; gap: 0.5rem; align-items: center;
+    font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .ticker-sym { color: var(--text-primary); font-weight: 500; }
+  .ticker-price { color: var(--text-secondary); }
+  .ticker-change.up { color: #22c55e; }
+  .ticker-change.down { color: var(--accent-bright); }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ─── MOBILE ─── */
+  @media (max-width: 900px) {
+    .hero-inner, .protocol-inner, .footer-inner { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .stats-inner { grid-template-columns: repeat(2, 1fr); gap: 0; }
+    .stat-item:nth-child(2) { border-right: none; }
+    .stat-item:nth-child(3) { border-right: 1px solid var(--border); border-top: 1px solid var(--border); }
+    .stat-item:nth-child(4) { border-right: none; border-top: 1px solid var(--border); }
+    .nav-links { display: none; }
+    .card-wide { grid-template-columns: 1fr 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="container nav-inner">
+    <a href="#" class="nav-logo">VØ<span></span>RGE</a>
+    <ul class="nav-links">
+      <li><a href="#features">Protocol</a></li>
+      <li><a href="#protocol">How It Works</a></li>
+      <li><a href="#">Markets</a></li>
+      <li><a href="#">Governance</a></li>
+    </ul>
+    <button class="btn-nav">Connect Wallet</button>
+  </div>
+</nav>
+
+<!-- TICKER -->
+<div style="margin-top: 0; position: relative; z-index: 2; padding-top: 80px;">
+  <div class="ticker-wrap">
+    <div class="ticker-track" id="ticker"></div>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="grid-lines"></div>
+  </div>
+  <div class="container">
+    <div class="hero-inner">
+      <div class="hero-left">
+        <p class="label hero-eyebrow">Cross-Chain DeFi Protocol</p>
+        <h1 class="hero-title">
+          <span class="line"><span class="line-inner">TRADE</span></span>
+          <span class="line"><span class="line-inner">WITHOUT</span></span>
+          <span class="line"><span class="line-inner"><em>LIMITS</em></span></span>
+        </h1>
+        <p class="hero-desc">
+          VØRGE connects 40+ chains into a single liquidity layer. Execute trades, manage positions, and earn yield — all from one interface.
+        </p>
+        <div class="hero-ctas">
+          <a href="#" class="btn-primary">Launch App</a>
+          <a href="#features" class="btn-ghost">Read Docs</a>
+        </div>
+      </div>
+
+      <!-- GLASSMORPHISM CARDS -->
+      <div class="hero-right">
+        <!-- Card 1: BTC -->
+        <div class="glass-card">
+          <div class="card-accent-line"></div>
+          <div class="glass-card-main">
+            <div class="asset-info">
+              <div class="asset-name">BITCOIN</div>
+              <div class="asset-subtitle">BTC · Ethereum Chain</div>
+            </div>
+            <div class="asset-price">
+              <div class="price-value">$67,420</div>
+              <div class="price-change up">▲ 2.34%</div>
+            </div>
+          </div>
+          <div class="spark-bar" id="spark1"></div>
+        </div>
+
+        <!-- Card 2: ETH -->
+        <div class="glass-card">
+          <div class="card-accent-line"></div>
+          <div class="live-dot">Live Feed</div>
+          <div class="glass-card-main">
+            <div class="asset-info">
+              <div class="asset-name">ETHEREUM</div>
+              <div class="asset-subtitle">ETH · Native</div>
+            </div>
+            <div class="asset-price">
+              <div class="price-value">$3,812</div>
+              <div class="price-change up">▲ 1.07%</div>
+            </div>
+          </div>
+          <div class="spark-bar" id="spark2"></div>
+        </div>
+
+        <!-- Card 3: Portfolio -->
+        <div class="glass-card">
+          <div class="card-accent-line"></div>
+          <p class="label" style="margin-bottom: 1rem; font-size: 0.58rem;">Portfolio Overview</p>
+          <div class="card-wide">
+            <div class="mini-stat">
+              <span class="mini-stat-label">Total Value</span>
+              <span class="mini-stat-value">$248.4K</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat-label">24H PnL</span>
+              <span class="mini-stat-value" style="color: #22c55e;">+$4.2K</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat-label">Positions</span>
+              <span class="mini-stat-value">14</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS STRIP -->
+<div class="stats-strip">
+  <div class="container">
+    <div class="stats-inner">
+      <div class="stat-item reveal">
+        <span class="stat-num">$4.8B</span>
+        <div class="stat-label">Total Value Locked</div>
+      </div>
+      <div class="stat-item reveal">
+        <span class="stat-num">42+</span>
+        <div class="stat-label">Supported Chains</div>
+      </div>
+      <div class="stat-item reveal">
+        <span class="stat-num">12M+</span>
+        <div class="stat-label">Transactions Settled</div>
+      </div>
+      <div class="stat-item reveal">
+        <span class="stat-num">340K</span>
+        <div class="stat-label">Active Wallets</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="label">Core Protocol</p>
+      <h2 class="section-title">ENGINEERED<br/>FOR SCALE</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">✕</div>
+        <div class="feature-title">Cross-Chain Routing</div>
+        <p class="feature-desc">Unified liquidity across 40+ chains. Optimal path execution via our proprietary router — no bridges, no wrapping.</p>
+        <span class="feature-tag">Live on Mainnet</span>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">◎</div>
+        <div class="feature-title">ZK Privacy Layer</div>
+        <p class="feature-desc">Execute trades with full on-chain finality while keeping position size and strategy private via ZK proofs.</p>
+        <span class="feature-tag">Beta · Q3 2025</span>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">△</div>
+        <div class="feature-title">Real-Time Liquidations</div>
+        <p class="feature-desc">Sub-second position monitoring with automated risk management. Never get caught on the wrong side of the curve.</p>
+        <span class="feature-tag">Live on Mainnet</span>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">◇</div>
+        <div class="feature-title">On-Chain Governance</div>
+        <p class="feature-desc">Protocol parameters, fee tiers, and chain integrations are decided entirely by $VØRGE token holders.</p>
+        <span class="feature-tag">Epoch 7 Active</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROTOCOL -->
+<section class="protocol" id="protocol">
+  <div class="container">
+    <div class="protocol-inner">
+      <div>
+        <div class="section-header reveal">
+          <p class="label">How It Works</p>
+          <h2 class="section-title">FOUR STEPS<br/>TO EXECUTE</h2>
+        </div>
+        <div class="protocol-steps">
+          <div class="step-item reveal">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <div class="step-title">Connect Any Wallet</div>
+              <p class="step-desc">MetaMask, Phantom, Ledger — any wallet works. No account, no KYC. Sovereign by default.</p>
+            </div>
+          </div>
+          <div class="step-item reveal">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <div class="step-title">Select Chain + Asset</div>
+              <p class="step-desc">40+ chains in one dropdown. VØRGE handles bridging logic in the background — you just pick the asset.</p>
+            </div>
+          </div>
+          <div class="step-item reveal">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <div class="step-title">Route Optimization</div>
+              <p class="step-desc">The router finds the best path across pools, AMMs, and order books in under 200ms. Slippage minimized automatically.</p>
+            </div>
+          </div>
+          <div class="step-item reveal">
+            <div class="step-num">04</div>
+            <div class="step-content">
+              <div class="step-title">Settle On-Chain</div>
+              <p class="step-desc">Every trade finalizes on native chain, fully non-custodial. Your keys, your assets.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="protocol-visual reveal">
+        <p class="label" style="margin-bottom: 1.5rem;">Supported Networks</p>
+        <div class="chain-pill">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="chain-dot" style="background:#627EEA;"></div>
+            <span class="chain-name">Ethereum</span>
+          </div>
+          <span class="chain-val">$2.1B TVL</span>
+        </div>
+        <div class="chain-pill">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="chain-dot" style="background:#9945FF;"></div>
+            <span class="chain-name">Solana</span>
+          </div>
+          <span class="chain-val">$890M TVL</span>
+        </div>
+        <div class="chain-pill">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="chain-dot" style="background:#FF0420;"></div>
+            <span class="chain-name">Optimism</span>
+          </div>
+          <span class="chain-val">$540M TVL</span>
+        </div>
+        <div class="chain-pill">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="chain-dot" style="background:#8B5CF6;"></div>
+            <span class="chain-name">Arbitrum</span>
+          </div>
+          <span class="chain-val">$480M TVL</span>
+        </div>
+        <div class="chain-pill">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="chain-dot" style="background:#2B6DEF;"></div>
+            <span class="chain-name">Base</span>
+          </div>
+          <span class="chain-val">$320M TVL</span>
+        </div>
+        <div class="chain-pill" style="border-style: dashed; opacity: 0.5;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div class="chain-dot" style="background:var(--text-muted);"></div>
+            <span class="chain-name">+37 more chains</span>
+          </div>
+          <span class="chain-val">↗ View all</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container" style="position: relative; z-index: 2;">
+    <p class="label cta-eyebrow reveal">Ready to trade?</p>
+    <h2 class="cta-title reveal">TRADE<br/><em>WITHOUT</em><br/>PERMISSION</h2>
+    <p class="cta-sub reveal">No accounts, no intermediaries, no limits. The entire DeFi landscape in one interface — live now.</p>
+    <div class="cta-actions reveal">
+      <a href="#" class="btn-primary">Launch App</a>
+      <a href="#" class="btn-ghost">Read Whitepaper</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">VØRGE</div>
+        <p class="footer-tagline">The cross-chain DeFi protocol for traders who demand precision.</p>
+      </div>
+      <div>
+        <p class="footer-col-title">Protocol</p>
+        <ul class="footer-links">
+          <li><a href="#">Overview</a></li>
+          <li><a href="#">Documentation</a></li>
+          <li><a href="#">Whitepaper</a></li>
+          <li><a href="#">Audit Reports</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-title">Governance</p>
+        <ul class="footer-links">
+          <li><a href="#">Forum</a></li>
+          <li><a href="#">Proposals</a></li>
+          <li><a href="#">$VØRGE Token</a></li>
+          <li><a href="#">Treasury</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-title">Community</p>
+        <ul class="footer-links">
+          <li><a href="#">Twitter</a></li>
+          <li><a href="#">Discord</a></li>
+          <li><a href="#">Telegram</a></li>
+          <li><a href="#">GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2025 VØRGE Protocol. All rights reserved.</p>
+      <div class="footer-socials">
+        <a href="#">Twitter</a>
+        <a href="#">Discord</a>
+        <a href="#">GitHub</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Spark bars
+function buildSpark(id, heights) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  heights.forEach((h, i) => {
+    const s = document.createElement('span');
+    s.style.height = h + '%';
+    if (i === heights.length - 1) s.classList.add('active');
+    el.appendChild(s);
+  });
+}
+buildSpark('spark1', [30,45,38,55,42,60,35,50,65,48,70,55,80,62,75]);
+buildSpark('spark2', [55,42,60,35,70,48,65,55,40,72,58,80,65,75,68]);
+
+// Ticker
+const tickerData = [
+  {sym:'BTC', price:'$67,420', change:'+2.34%', up:true},
+  {sym:'ETH', price:'$3,812', change:'+1.07%', up:true},
+  {sym:'SOL', price:'$186.4', change:'+4.21%', up:true},
+  {sym:'ARB', price:'$1.24', change:'-0.85%', up:false},
+  {sym:'OP', price:'$2.87', change:'+3.15%', up:true},
+  {sym:'AVAX', price:'$42.10', change:'-1.20%', up:false},
+  {sym:'MATIC', price:'$0.88', change:'+0.64%', up:true},
+  {sym:'LINK', price:'$18.92', change:'+2.80%', up:true},
+];
+const track = document.getElementById('ticker');
+// Double for seamless loop
+[...tickerData, ...tickerData, ...tickerData, ...tickerData].forEach(t => {
+  track.innerHTML += `<span class="ticker-item">
+    <span class="ticker-sym">${t.sym}</span>
+    <span class="ticker-price">${t.price}</span>
+    <span class="ticker-change ${t.up ? 'up' : 'down'}">${t.change}</span>
+  </span>`;
+});
+
+// Navbar scroll
+const nav = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 60);
+}, { passive: true });
+
+// GSAP Animations
+gsap.registerPlugin(ScrollTrigger);
+
+// Hero animations
+gsap.to('.hero-eyebrow', { opacity: 1, y: 0, duration: 0.8, delay: 0.4, ease: 'power2.out' });
+gsap.to('.hero-title .line-inner', {
+  opacity: 1, y: '0%', duration: 0.9, stagger: 0.12, delay: 0.6, ease: 'power3.out'
+});
+gsap.to('.hero-desc', { opacity: 1, y: 0, duration: 0.8, delay: 1.1, ease: 'power2.out' });
+gsap.to('.hero-ctas', { opacity: 1, y: 0, duration: 0.8, delay: 1.3, ease: 'power2.out' });
+gsap.to('.hero-right', { opacity: 1, y: 0, duration: 1, delay: 1.1, ease: 'power2.out' });
+
+// Scroll reveals
+ScrollTrigger.batch('.reveal', {
+  onEnter: els => gsap.to(els, {
+    opacity: 1, y: 0, duration: 0.9, stagger: 0.1, ease: 'power2.out'
+  }),
+  start: 'top 88%'
+});
+
+// Subtle card float on scroll
+gsap.to('.glass-card:nth-child(2)', {
+  y: -10, scrollTrigger: { trigger: '.hero', scrub: 1 }
+});
+</script>
+</body>
+</html>
