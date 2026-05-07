@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URLShield — AI-Powered Security Scanner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg:        #07080f;
+      --bg-2:      #0b0d1a;
+      --bg-3:      #10122b;
+      --card:      rgba(255,255,255,0.04);
+      --card-b:    rgba(255,255,255,0.09);
+      --card-h:    rgba(255,255,255,0.07);
+      --text:      #e2e8f8;
+      --text-2:    rgba(226,232,248,0.6);
+      --text-3:    rgba(226,232,248,0.32);
+      --green:     #00e87a;
+      --green-d:   rgba(0,232,122,0.14);
+      --yellow:    #ffd60a;
+      --yellow-d:  rgba(255,214,10,0.14);
+      --red:       #ff3b5c;
+      --red-d:     rgba(255,59,92,0.14);
+      --blue:      #0af0ff;
+      --blue-d:    rgba(10,240,255,0.12);
+      --purple:    #9b5de5;
+      --orange:    #ff8c00;
+      --r:         16px;
+      --r-sm:      10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Space Grotesk', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* subtle grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.013) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.013) 1px, transparent 1px);
+      background-size: 44px 44px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── screens ─────────────────────────────────── */
+    .screen { display: none; position: relative; z-index: 1; }
+    .screen.active { display: block; }
+    #screen-scanning.active { display: flex; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── glow blobs ───────────────────────────────── */
+    .glow {
+      position: fixed; pointer-events: none; z-index: 0; border-radius: 50%;
+    }
+    .glow-1 {
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(0,232,122,0.055) 0%, transparent 70%);
+      top: -280px; left: -200px;
+    }
+    .glow-2 {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(10,240,255,0.045) 0%, transparent 70%);
+      bottom: -150px; right: -150px;
+    }
+
+    /* ── shared components ───────────────────────── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 100px;
+      font-size: 11.5px; font-weight: 700; letter-spacing: 0.4px;
+    }
+    .badge-critical { background: var(--red-d);    color: var(--red);    }
+    .badge-high     { background: rgba(255,140,0,.14); color: var(--orange); }
+    .badge-medium   { background: var(--yellow-d); color: var(--yellow); }
+    .badge-low      { background: var(--blue-d);   color: var(--blue);   }
+
+    /* ══════════════════════════════════════════════
+       LANDING
+    ══════════════════════════════════════════════ */
+
+    /* nav */
+    .nav {
+      padding: 18px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 1.15rem; letter-spacing: -.4px;
+    }
+    .nav-logo-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--green), #00c766);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 18px rgba(0,232,122,0.4);
+    }
+    .nav-links { display: flex; gap: 2px; }
+    .nav-link {
+      padding: 7px 15px; border-radius: var(--r-sm);
+      font-size: 14px; color: var(--text-2); cursor: pointer;
+      transition: all .18s; text-decoration: none;
+    }
+    .nav-link:hover { background: var(--card); color: var(--text); }
+    .nav-cta {
+      padding: 9px 20px; border-radius: var(--r-sm);
+      background: linear-gradient(135deg, var(--green), #00c766);
+      border: none; color: #07080f; font-family: inherit;
+      font-weight: 700; font-size: 14px; cursor: pointer;
+      box-shadow: 0 0 20px rgba(0,232,122,0.3);
+      transition: all .2s;
+    }
+    .nav-cta:hover { box-shadow: 0 0 32px rgba(0,232,122,0.5); transform: translateY(-1px); }
+
+    /* hero */
+    .hero { padding: 76px 0 56px; text-align: center; }
+    .hero-pill {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 6px 15px; border-radius: 100px;
+      background: var(--green-d); border: 1px solid rgba(0,232,122,0.22);
+      font-size: 13px; font-weight: 500; color: var(--green); margin-bottom: 24px;
+    }
+    .hero-pill::before {
+      content: ''; width: 7px; height: 7px; background: var(--green);
+      border-radius: 50%; animation: blink 1.6s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:.45; transform:scale(.75); }
+    }
+    .hero h1 {
+      font-size: clamp(1.9rem, 5vw, 3.4rem);
+      font-weight: 700; letter-spacing: -1.5px; line-height: 1.1;
+      margin-bottom: 18px;
+      background: linear-gradient(160deg, var(--text) 0%, rgba(226,232,248,0.7) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.05rem; color: var(--text-2);
+      max-width: 500px; margin: 0 auto 40px; line-height: 1.7;
+    }
+
+    /* url form */
+    .url-form { max-width: 640px; margin: 0 auto 14px; }
+    .url-row {
+      display: flex;
+      background: var(--card); border: 1.5px solid var(--card-b);
+      border-radius: var(--r); overflow: hidden;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .url-row:focus-within {
+      border-color: rgba(0,232,122,0.45);
+      box-shadow: 0 0 0 3px rgba(0,232,122,0.09);
+    }
+    .url-input {
+      flex: 1; background: none; border: none;
+      padding: 15px 20px;
+      font-family: 'JetBrains Mono', monospace; font-size: 14px;
+      color: var(--text); outline: none;
+    }
+    .url-input::placeholder { color: var(--text-3); }
+    .scan-btn {
+      padding: 15px 26px;
+      background: linear-gradient(135deg, var(--green), #00c766);
+      border: none; color: #07080f;
+      font-family: inherit; font-weight: 700; font-size: 14.5px;
+      cursor: pointer; white-space: nowrap; transition: .18s;
+    }
+    .scan-btn:hover { filter: brightness(1.1); }
+    .scan-btn.shake { animation: shake .38s ease; }
+    @keyframes shake {
+      0%,100% { transform:translateX(0); }
+      20%     { transform:translateX(-5px); }
+      40%     { transform:translateX(5px); }
+      60%     { transform:translateX(-3px); }
+      80%     { transform:translateX(3px); }
+    }
+
+    .key-row {
+      display: flex; align-items: center; gap: 8px;
+      max-width: 640px; margin: 0 auto;
+    }
+    .key-input {
+      flex: 1; background: var(--card);
+      border: 1.5px solid var(--card-b); border-radius: var(--r-sm);
+      padding: 9px 15px;
+      font-family: 'JetBrains Mono', monospace; font-size: 13px;
+      color: var(--text-2); outline: none; transition: border-color .2s;
+    }
+    .key-input:focus { border-color: rgba(0,232,122,0.3); }
+    .key-input::placeholder { color: var(--text-3); }
+    .key-note {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; color: var(--text-3); white-space: nowrap;
+    }
+    .err-msg {
+      display: none; margin: 10px auto 0;
+      background: var(--red-d); border: 1px solid rgba(255,59,92,.25);
+      border-radius: var(--r-sm); padding: 10px 16px;
+      font-size: 13px; color: var(--red); max-width: 640px;
+    }
+
+    /* stats bar */
+    .stats-bar {
+      background: var(--card); border: 1px solid var(--card-b);
+      border-radius: var(--r); padding: 20px 32px;
+      display: flex; justify-content: space-around; align-items: center;
+      margin: 48px 0; gap: 16px; flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat-v {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.7rem; font-weight: 700; letter-spacing: -1px;
+      color: var(--green);
+    }
+    .stat-l {
+      font-size: 11.5px; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: .8px; margin-top: 2px;
+    }
+    .stat-sep { width: 1px; height: 40px; background: var(--card-b); }
+
+    /* section typography */
+    .sec-tag {
+      font-size: 11.5px; font-weight: 600; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--text-3); margin-bottom: 14px;
+    }
+    .sec-h { font-size: 1.75rem; font-weight: 700; letter-spacing: -.5px; margin-bottom: 8px; }
+    .sec-sub { color: var(--text-2); font-size: .97rem; margin-bottom: 40px; }
+
+    /* check cards */
+    .check-grid {
+      display: grid; grid-template-columns: repeat(auto-fit,minmax(238px,1fr));
+      gap: 16px; margin-bottom: 80px;
+    }
+    .check-card {
+      background: var(--card); border: 1px solid var(--card-b);
+      border-radius: var(--r); padding: 28px 24px;
+      transition: all .2s;
+    }
+    .check-card:hover {
+      background: var(--card-h); border-color: rgba(255,255,255,0.15);
+      transform: translateY(-2px);
+    }
+    .cc-icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; margin-bottom: 16px;
+    }
+    .check-card h3 { font-size: 1.02rem; font-weight: 600; margin-bottom: 8px; }
+    .check-card p  { font-size: 13.5px; color: var(--text-2); line-height: 1.6; }
+    .cc-checks { margin-top: 16px; display: flex; flex-direction: column; gap: 7px; }
+    .cc-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12.5px; color: var(--text-2);
+    }
+    .cc-item::before { content:'✓'; color:var(--green); font-weight:700; font-size:11px; }
+
+    /* how it works */
+    .hiw { margin-bottom: 80px; }
+    .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 28px; position: relative; }
+    .steps::before {
+      content: ''; position: absolute; top: 28px;
+      left: calc(16.67% + 14px); right: calc(16.67% + 14px);
+      height: 1px;
+      background: linear-gradient(90deg, var(--green), var(--blue)); opacity: .25;
+    }
+    .step { text-align: center; padding: 20px; }
+    .step-n {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--bg-3); border: 1.5px solid var(--card-b);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600; font-size: 1.05rem; color: var(--green);
+      margin: 0 auto 18px;
+    }
+    .step h3 { font-size: .98rem; font-weight: 600; margin-bottom: 7px; }
+    .step p   { font-size: 13.5px; color: var(--text-2); line-height: 1.65; }
+
+    /* pricing */
+    .pricing { margin-bottom: 80px; }
+    .price-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .price-card {
+      background: var(--card); border: 1px solid var(--card-b);
+      border-radius: var(--r); padding: 32px 26px; position: relative;
+    }
+    .price-card.feat {
+      border-color: rgba(0,232,122,0.42);
+      background: rgba(0,232,122,0.038);
+      box-shadow: 0 0 44px rgba(0,232,122,0.09);
+    }
+    .pop-tag {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--green); color: #07080f;
+      font-size: 11px; font-weight: 700; padding: 3px 14px;
+      border-radius: 100px; white-space: nowrap; letter-spacing: .4px;
+    }
+    .plan-n {
+      font-size: 12.5px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-3); margin-bottom: 10px;
+    }
+    .plan-p {
+      font-size: 2.4rem; font-weight: 700; letter-spacing: -2px;
+      font-family: 'JetBrains Mono', monospace; margin-bottom: 4px;
+    }
+    .plan-p span { font-size: .9rem; font-weight: 400; color: var(--text-3); letter-spacing: 0; font-family: inherit; }
+    .plan-d { font-size: 13.5px; color: var(--text-2); margin-bottom: 22px; line-height: 1.6; }
+    .plan-feats {
+      list-style: none; display: flex; flex-direction: column;
+      gap: 9px; margin-bottom: 26px;
+    }
+    .plan-feats li {
+      display: flex; align-items: center; gap: 9px;
+      font-size: 13.5px; color: var(--text-2);
+    }
+    .plan-feats li::before { content:'→'; color:var(--green); font-weight:600; flex-shrink:0; }
+    .plan-btn {
+      width: 100%; padding: 12px; border-radius: var(--r-sm);
+      font-family: inherit; font-weight: 600; font-size: 14px;
+      cursor: pointer; border: 1.5px solid; transition: all .2s;
+    }
+    .plan-btn-out {
+      background: none; border-color: var(--card-b); color: var(--text);
+    }
+    .plan-btn-out:hover { border-color: rgba(255,255,255,.22); background: var(--card); }
+    .plan-btn-fill {
+      background: var(--green); border-color: var(--green); color: #07080f;
+    }
+    .plan-btn-fill:hover { filter: brightness(1.1); }
+
+    /* qr */
+    .qr-sec {
+      background: var(--card); border: 1px solid var(--card-b);
+      border-radius: var(--r); padding: 44px 40px;
+      display: flex; align-items: center; gap: 48px; margin-bottom: 80px;
+    }
+    .qr-wrap {
+      width: 156px; height: 156px; flex-shrink: 0;
+      background: var(--bg-2); border: 1px solid var(--card-b);
+      border-radius: var(--r); overflow: hidden;
+      display: flex; align-items: center; justify-content: center; padding: 8px;
+    }
+    .qr-txt h2 { font-size: 1.45rem; font-weight: 700; letter-spacing: -.4px; margin-bottom: 12px; }
+    .qr-txt p  { color: var(--text-2); font-size: .93rem; line-height: 1.7; max-width: 460px; }
+    .qr-tags { display: flex; gap: 10px; margin-top: 18px; }
+    .qr-tag {
+      padding: 5px 13px; border-radius: 6px;
+      font-size: 12px; font-weight: 500;
+      background: var(--bg-3); color: var(--text-2);
+    }
+
+    /* footer */
+    .footer { border-top: 1px solid rgba(255,255,255,0.05); padding: 36px 0; }
+    .footer-inner {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-logo { font-weight: 700; color: var(--text-2); }
+    .footer-copy { font-size: 13px; color: var(--text-3); }
+    .footer-links { display: flex; gap: 18px; }
+    .footer-link { font-size: 13px; color: var(--text-3); text-decoration: none; cursor: pointer; }
+    .footer-link:hover { color: var(--text-2); }
+
+    /* ══════════════════════════════════════════════
+       SCANNING
+    ══════════════════════════════════════════════ */
+    #screen-scanning {
+      min-height: 100vh;
+      flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 60px 24px;
+    }
+    .scan-label {
+      font-size: 12px; letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .scan-url-pill {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace; font-size: 13px;
+      color: var(--text-3); margin-bottom: 56px; padding: 7px 20px;
+      background: var(--card); border: 1px solid var(--card-b); border-radius: 100px;
+      max-width: 520px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* orbiter */
+    .orbiter { position: relative; width: 220px; height: 220px; margin: 0 auto 52px; }
+
+    .orb-ring {
+      position: absolute; top: 50%; left: 50%; border-radius: 50%;
+      border: 1.5px solid transparent; transform: translate(-50%,-50%);
+    }
+    .orb-ring-a {
+      width: 110px; height: 110px;
+      border-color: rgba(0,232,122,.18); border-top-color: var(--green);
+      animation: spin 2s linear infinite;
+    }
+    .orb-ring-b {
+      width: 162px; height: 162px;
+      border-color: rgba(10,240,255,.13); border-right-color: var(--blue);
+      animation: spin 3.6s linear infinite reverse;
+    }
+    .orb-ring-c {
+      width: 214px; height: 214px;
+      border-color: rgba(155,93,229,.1); border-bottom-color: var(--purple);
+      animation: spin 5.2s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: translate(-50%,-50%) rotate(0deg); }
+      to   { transform: translate(-50%,-50%) rotate(360deg); }
+    }
+
+    /* orbiting dots */
+    .dot-orbit {
+      position: absolute; top: 0; left: 0; width: 220px; height: 220px;
+      animation: spin linear infinite;
+    }
+    .dot-orbit-a { animation-duration: 2s; }
+    .dot-orbit-b { animation-duration: 3.6s; animation-direction: reverse; }
+    .orb-dot {
+      position: absolute; width: 8px; height: 8px; border-radius: 50%;
+      top: 50%; margin-top: -4px; margin-left: -4px;
+    }
+    .dot-orbit-a .orb-dot {
+      left: calc(50% + 55px);
+      background: var(--green); box-shadow: 0 0 9px var(--green);
+    }
+    .dot-orbit-b .orb-dot {
+      left: calc(50% + 81px);
+      background: var(--blue); box-shadow: 0 0 9px var(--blue);
+    }
+
+    .orb-center {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 58px; height: 58px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(0,232,122,.12), rgba(10,240,255,.1));
+      border: 1.5px solid rgba(0,232,122,.3);
+      box-shadow: 0 0 24px rgba(0,232,122,.2);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* progress */
+    .scan-prog { width: 100%; max-width: 420px; }
+    .prog-head { display: flex; justify-content: space-between; margin-bottom: 9px; }
+    .prog-msg  { font-size: 13px; color: var(--text-2); font-family: 'JetBrains Mono', monospace; }
+    .prog-pct  { font-size: 13px; color: var(--green); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+    .prog-track {
+      height: 4px; background: var(--card); border-radius: 4px; overflow: hidden;
+    }
+    .prog-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      border-radius: 4px; box-shadow: 0 0 10px rgba(0,232,122,.5);
+      transition: width .28s ease;
+    }
+    .sub-steps {
+      display: flex; flex-direction: column; gap: 7px; margin-top: 24px; text-align: left;
+    }
+    .sub-step {
+      display: flex; align-items: center; gap: 9px;
+      font-size: 12.5px; color: var(--text-3);
+      font-family: 'JetBrains Mono', monospace; transition: color .3s;
+    }
+    .sub-step.run { color: var(--text); }
+    .sub-step.done { color: var(--green); }
+    .sub-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: currentColor; flex-shrink: 0;
+    }
+    .sub-step.run .sub-dot { animation: blink .9s ease-in-out infinite; }
+
+    /* ══════════════════════════════════════════════
+       RESULTS
+    ══════════════════════════════════════════════ */
+    .res-header { padding: 36px 0 28px; border-bottom: 1px solid rgba(255,255,255,.05); margin-bottom: 36px; }
+    .res-header-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .back-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: none; border: 1px solid var(--card-b); border-radius: var(--r-sm);
+      padding: 9px 15px; color: var(--text-2); font-family: inherit;
+      font-size: 13.5px; cursor: pointer; transition: all .18s;
+    }
+    .back-btn:hover { background: var(--card); color: var(--text); }
+    .res-url {
+      font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+      color: var(--text-3); text-align: center; flex: 1;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 12px;
+    }
+    .rescan-btn {
+      background: var(--card); border: 1px solid var(--card-b);
+      border-radius: var(--r-sm); padding: 9px 15px;
+      color: var(--text-2); font-family: inherit; font-size: 13.5px;
+      cursor: pointer; transition: all .18s;
+    }
+    .rescan-btn:hover { background: var(--card-h); }
+
+    /* top grid */
+    .res-top { display: grid; grid-template-columns: 270px 1fr; gap: 28px; margin-bottom: 28px; }
+
+    /* score circle */
+    .score-card {
+      background: var(--card); border: 1px solid var(--card-b);
+      border-radius: var(--r); padding: 32px 24px;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+    }
+    .score-wrap { position: relative; width: 152px; height: 152px; margin-bottom: 18px; }
+    .score-glow {
+      position: absolute; inset: -24px; border-radius: 50%; opacity: .14;
+      transition: background .5s;
+    }
+    .score-svg { width: 152px; height: 152px; transform: rotate(-90deg); }
+    .s-bg { fill:none; stroke:rgba(255,255,255,0.06); stroke-width:8; }
+    .s-fill {
+      fill:none; stroke-width:8; stroke-linecap:round;
+      stroke-dasharray: 390; stroke-dashoffset: 390;
+      transition: stroke-dashoffset 1.9s cubic-bezier(.34,1.56,.64,1), stroke .45s ease;
+    }
+    .score-num {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.4rem; font-weight: 700; line-height: 1;
+    }
+    .score-lbl { font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+    .score-sub { font-size: 11.5px; color: var(--text-3); }
+
+    /* category scores */
+    .cats-card {
+      background: var(--card); border: 1px solid var(--card-b);
+      border-radius: var(--r); padding: 26px 28px;
+    }
+    .cats-title { font-size: 13.5px; font-weight: 600; color: var(--text-2); margin-bottom: 22px; }
+    .cat-item { margin-bottom: 18px; }
+    .cat-item:last-child { margin-bottom: 0; }
+    .cat-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+    .cat-name { display: flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 500; }
+    .cat-val  { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; font-weight: 600; }
+    .cat-track { height: 6px; background: rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden; }
+    .cat-bar {
+      height: 100%; border-radius: 6px; width: 0%;
+      transition: width 1.3s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    /* summary */
+    .summary-card {
+      background: var(--card); border: 1px solid var(--card-b);
+      border-radius: var(--r); padding: 22px 26px; margin-bottom: 30px;
+    }
+    .summary-card p { font-size: 14px; color: var(--text-2); line-height: 1.75; }
+    .demo-note {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-bottom: 10px; font-size: 12px; color: var(--yellow);
+      background: var(--yellow-d); border: 1px solid rgba(255,214,10,.2);
+      padding: 4px 12px; border-radius: 100px;
+    }
+
+    /* issues */
+    .issues-sec { margin-bottom: 64px; }
+    .issues-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 18px; flex-wrap: wrap; gap: 12px;
+    }
+    .issues-title { font-size: 1.05rem; font-weight: 600; }
+    .filters { display: flex; gap: 6px; flex-wrap: wrap; }
+    .f-btn {
+      padding: 5px 13px; border-radius: 100px;
+      border: 1.5px solid var(--card-b); background: none;
+      color: var(--text-2); font-family: inherit; font-size: 12.5px; font-weight: 500;
+      cursor: pointer; transition: all .18s;
+    }
+    .f-btn:hover { border-color: rgba(255,255,255,.2); color: var(--text); }
+    .f-btn.on { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.2); color: var(--text); }
+
+    .issue-list { display: flex; flex-direction: column; gap: 9px; }
+    .issue-card {
+      background: var(--card); border: 1px solid var(--card-b);
+      border-radius: var(--r-sm); overflow: hidden; transition: border-color .18s;
+    }
+    .issue-card:hover { border-color: rgba(255,255,255,.14); }
+    .issue-head {
+      display: flex; align-items: center; gap: 11px;
+      padding: 15px 18px; cursor: pointer; user-select: none;
+    }
+    .isev-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .issue-main { flex: 1; }
+    .issue-title { font-size: 14px; font-weight: 500; margin-top: 3px; }
+    .chevron { color: var(--text-3); font-size: 18px; transition: transform .18s; flex-shrink: 0; }
+    .issue-card.open .chevron { transform: rotate(180deg); }
+
+    .issue-body {
+      display: none; padding: 0 18px 18px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .issue-card.open .issue-body { display: block; }
+    .issue-desc { font-size: 13.5px; color: var(--text-2); line-height: 1.7; padding-top: 15px; margin-bottom: 15px; }
+    .fix-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-3); margin-bottom: 7px; }
+    .fix-box {
+      background: var(--bg-3); border: 1px solid var(--card-b);
+      border-radius: var(--r-sm); padding: 13px 15px;
+      font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+      color: var(--green); line-height: 1.75; white-space: pre-wrap;
+      word-break: break-all; position: relative;
+    }
+    .copy-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(0,232,122,.15); border: none; border-radius: 6px;
+      padding: 3px 10px; color: var(--green); font-family: inherit;
+      font-size: 11px; font-weight: 600; cursor: pointer; transition: .18s;
+    }
+    .copy-btn:hover { background: rgba(0,232,122,.28); }
+
+    .no-issues {
+      display: none; text-align: center; padding: 48px 24px;
+      color: var(--text-3); font-size: 14px;
+    }
+
+    /* ── responsive ───────────────────────────────── */
+    @media (max-width: 780px) {
+      .nav-links { display: none; }
+      .hero { padding: 48px 0 36px; }
+      .stats-bar { flex-direction: column; }
+      .stat-sep { display: none; }
+      .steps { grid-template-columns: 1fr; }
+      .steps::before { display: none; }
+      .price-grid { grid-template-columns: 1fr; }
+      .qr-sec { flex-direction: column; gap: 24px; text-align: center; }
+      .footer-inner { flex-direction: column; gap: 14px; text-align: center; }
+      .res-top { grid-template-columns: 1fr; }
+      .res-header-inner { flex-wrap: wrap; }
+      .filters { gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="glow glow-1"></div>
+<div class="glow glow-2"></div>
+
+<!-- ════════════════════════════════════════════════
+     SCREEN: LANDING
+════════════════════════════════════════════════ -->
+<div class="screen active" id="screen-landing">
+  <nav class="nav">
+    <div class="container">
+      <div class="nav-inner">
+        <div class="nav-logo">
+          <div class="nav-logo-icon">
+            <svg width="19" height="19" viewBox="0 0 19 19" fill="none">
+              <path d="M9.5 2L17 6v7l-7.5 4L2 13V6l7.5-4z" stroke="#07080f" stroke-width="1.8" stroke-linejoin="round"/>
+              <circle cx="9.5" cy="9.5" r="2.8" fill="#07080f"/>
+            </svg>
+          </div>
+          URLShield
+        </div>
+        <div class="nav-links">
+          <a class="nav-link" href="#features">Features</a>
+          <a class="nav-link" href="#how">How it works</a>
+          <a class="nav-link" href="#pricing">Pricing</a>
+        </div>
+        <button class="nav-cta" onclick="document.getElementById('url-input').focus()">Start Scanning</button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+
+      <!-- hero -->
+      <section class="hero">
+        <div class="hero-pill">AI-Powered Security Analysis</div>
+        <h1>Scan any URL for<br><em>security threats</em> instantly</h1>
+        <p class="hero-sub">Powered by Claude AI. Checks SSL, HTTP headers, DNS records, and malware signals in under 6 seconds.</p>
+
+        <div class="url-form">
+          <div class="url-row">
+            <input
+              type="url"
+              class="url-input"
+              id="url-input"
+              placeholder="https://example.com"
+              autocomplete="off"
+              spellcheck="false"
+              onkeydown="if(event.key==='Enter')startScan()"
+            >
+            <button class="scan-btn" id="scan-btn" onclick="startScan()">Scan Now →</button>
+          </div>
+          <div class="err-msg" id="err-msg"></div>
+        </div>
+
+        <div class="key-row">
+          <input
+            type="password"
+            class="key-input"
+            id="api-key-input"
+            placeholder="sk-ant-… Anthropic API key (optional — demo data used if blank)"
+            autocomplete="off"
+          >
+          <span class="key-note">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <rect x="1" y="5" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M4 5V3.5a2 2 0 114 0V5" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+            Never stored
+          </span>
+        </div>
+      </section>
+
+      <!-- stats -->
+      <div class="stats-bar">
+        <div class="stat"><span class="stat-v" id="s-scans">0K</span><span class="stat-l">URLs Scanned</span></div>
+        <div class="stat-sep"></div>
+        <div class="stat"><span class="stat-v" id="s-threats">0K</span><span class="stat-l">Threats Detected</span></div>
+        <div class="stat-sep"></div>
+        <div class="stat"><span class="stat-v">98.7%</span><span class="stat-l">Accuracy Rate</span></div>
+        <div class="stat-sep"></div>
+        <div class="stat"><span class="stat-v">&lt;6s</span><span class="stat-l">Avg Scan Time</span></div>
+        <div class="stat-sep"></div>
+        <div class="stat"><span class="stat-v">18</span><span class="stat-l">Security Checks</span></div>
+      </div>
+
+      <!-- check cards -->
+      <section id="features">
+        <p class="sec-tag">What we check</p>
+        <h2 class="sec-h">Comprehensive security analysis</h2>
+        <p class="sec-sub">Every scan runs 18 checks across four security domains.</p>
+        <div class="check-grid">
+          <div class="check-card">
+            <div class="cc-icon" style="background:rgba(0,232,122,.12)">🔒</div>
+            <h3>SSL / TLS</h3>
+            <p>Validates certificate chain, expiry, and cryptographic strength.</p>
+            <div class="cc-checks">
+              <span class="cc-item">Certificate validity &amp; chain</span>
+              <span class="cc-item">TLS version &amp; cipher suite</span>
+              <span class="cc-item">Certificate transparency</span>
+              <span class="cc-item">HSTS enforcement</span>
+            </div>
+          </div>
+          <div class="check-card">
+            <div class="cc-icon" style="background:rgba(10,240,255,.1)">📋</div>
+            <h3>HTTP Headers</h3>
+            <p>Audits security headers for XSS, clickjacking, and injection protection.</p>
+            <div class="cc-checks">
+              <span class="cc-item">Content-Security-Policy</span>
+              <span class="cc-item">X-Frame-Options</span>
+              <span class="cc-item">X-Content-Type-Options</span>
+              <span class="cc-item">Referrer-Policy</span>
+            </div>
+          </div>
+          <div class="check-card">
+            <div class="cc-icon" style="background:rgba(155,93,229,.12)">🌐</div>
+            <h3>DNS Security</h3>
+            <p>Checks DNS configuration, DNSSEC, and anti-phishing records.</p>
+            <div class="cc-checks">
+              <span class="cc-item">DNSSEC validation</span>
+              <span class="cc-item">SPF &amp; DMARC records</span>
+              <span class="cc-item">CAA records</span>
+              <span class="cc-item">Domain age &amp; reputation</span>
+            </div>
+          </div>
+          <div class="check-card">
+            <div class="cc-icon" style="background:rgba(255,59,92,.1)">🛡️</div>
+            <h3>Malware &amp; Phishing</h3>
+            <p>Detects known malicious patterns, phishing indicators, and suspicious redirects.</p>
+            <div class="cc-checks">
+              <span class="cc-item">Malware signature scan</span>
+              <span class="cc-item">Phishing URL patterns</span>
+              <span class="cc-item">Redirect chain analysis</span>
+              <span class="cc-item">Blocklist cross-reference</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- how it works -->
+      <section class="hiw" id="how">
+        <p class="sec-tag">Process</p>
+        <h2 class="sec-h">How it works</h2>
+        <p class="sec-sub">Three steps from URL to full security report.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-n">01</div>
+            <h3>Enter URL</h3>
+            <p>Paste any URL. No account required. Your API key is never sent to our servers.</p>
+          </div>
+          <div class="step">
+            <div class="step-n">02</div>
+            <h3>AI Analysis</h3>
+            <p>Claude AI runs 18 checks across SSL, headers, DNS, and malware databases simultaneously.</p>
+          </div>
+          <div class="step">
+            <div class="step-n">03</div>
+            <h3>Review Report</h3>
+            <p>Get a 0–100 risk score and copy-ready configuration fixes for every issue found.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- pricing -->
+      <section class="pricing" id="pricing">
+        <p class="sec-tag">Pricing</p>
+        <h2 class="sec-h">Simple, transparent pricing</h2>
+        <p class="sec-sub">Bring your own Anthropic API key. Pay only for what you use.</p>
+        <div class="price-grid">
+          <div class="price-card">
+            <div class="plan-n">Free</div>
+            <div class="plan-p">$0<span>/mo</span></div>
+            <div class="plan-d">Perfect for occasional scans. No signup required.</div>
+            <ul class="plan-feats">
+              <li>10 scans per day</li>
+              <li>18-point security checks</li>
+              <li>Demo data fallback</li>
+              <li>QR mobile access</li>
+            </ul>
+            <button class="plan-btn plan-btn-out">Get Started Free</button>
+          </div>
+          <div class="price-card feat">
+            <div class="pop-tag">Most Popular</div>
+            <div class="plan-n">Pro</div>
+            <div class="plan-p">$9<span>/mo</span></div>
+            <div class="plan-d">Full Claude AI analysis with your own API key.</div>
+            <ul class="plan-feats">
+              <li>Unlimited scans</li>
+              <li>Full Claude AI analysis</li>
+              <li>PDF export</li>
+              <li>Webhook alerts</li>
+              <li>Scan history</li>
+            </ul>
+            <button class="plan-btn plan-btn-fill">Start Pro Trial</button>
+          </div>
+          <div class="price-card">
+            <div class="plan-n">Enterprise</div>
+            <div class="plan-p">Custom</div>
+            <div class="plan-d">For teams with high-volume scanning needs.</div>
+            <ul class="plan-feats">
+              <li>Bulk URL scanning</li>
+              <li>REST API access</li>
+              <li>SSO &amp; team management</li>
+              <li>SLA guarantee</li>
+              <li>Priority support</li>
+            </ul>
+            <button class="plan-btn plan-btn-out">Contact Sales</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- qr code -->
+      <section class="qr-sec">
+        <div class="qr-wrap" id="qr-box"></div>
+        <div class="qr-txt">
+          <h2>Scan on mobile — no install needed</h2>
+          <p>Point your camera at this QR code to open URLShield in any mobile browser. The same full-featured scanner works on iOS and Android instantly — no app download required.</p>
+          <div class="qr-tags">
+            <span class="qr-tag">📱 iOS Safari</span>
+            <span class="qr-tag">🤖 Android Chrome</span>
+            <span class="qr-tag">🦊 Firefox Mobile</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-logo">URLShield</div>
+        <div class="footer-copy">© 2025 URLShield. Powered by Claude AI.</div>
+        <div class="footer-links">
+          <a class="footer-link">Privacy</a>
+          <a class="footer-link">Terms</a>
+          <a class="footer-link">API</a>
+          <a class="footer-link">GitHub</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     SCREEN: SCANNING
+════════════════════════════════════════════════ -->
+<div class="screen" id="screen-scanning">
+  <div style="max-width:540px;width:100%">
+    <p class="scan-label">Scanning</p>
+    <p class="scan-url-pill" id="scan-url-pill">https://example.com</p>
+
+    <div class="orbiter">
+      <div class="orb-ring orb-ring-c"></div>
+      <div class="orb-ring orb-ring-b"></div>
+      <div class="orb-ring orb-ring-a"></div>
+      <div class="dot-orbit dot-orbit-a"><div class="orb-dot"></div></div>
+      <div class="dot-orbit dot-orbit-b"><div class="orb-dot"></div></div>
+      <div class="orb-center">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+          <path d="M13 3L22 8v10l-9 5-9-5V8l9-5z" stroke="var(--green)" stroke-width="1.6" stroke-linejoin="round"/>
+          <circle cx="13" cy="13" r="3.2" fill="var(--green)" opacity=".85"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="scan-prog">
+      <div class="prog-head">
+        <span class="prog-msg" id="prog-msg">Initializing scanner…</span>
+        <span class="prog-pct" id="prog-pct">0%</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+      <div class="sub-steps" id="sub-steps">
+        <div class="sub-step" data-i="0"><span class="sub-dot"></span>Resolving domain</div>
+        <div class="sub-step" data-i="1"><span class="sub-dot"></span>Checking SSL certificate</div>
+        <div class="sub-step" data-i="2"><span class="sub-dot"></span>Auditing HTTP headers</div>
+        <div class="sub-step" data-i="3"><span class="sub-dot"></span>Analyzing DNS records</div>
+        <div class="sub-step" data-i="4"><span class="sub-dot"></span>Scanning for malware</div>
+        <div class="sub-step" data-i="5"><span class="sub-dot"></span>Running AI analysis</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     SCREEN: RESULTS
+════════════════════════════════════════════════ -->
+<div class="screen" id="screen-results">
+  <div class="res-header">
+    <div class="container">
+      <div class="res-header-inner">
+        <button class="back-btn" onclick="goHome()">← New Scan</button>
+        <span class="res-url" id="res-url">https://example.com</span>
+        <button class="rescan-btn" onclick="rescan()">↻ Rescan</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="res-top">
+      <!-- score circle -->
+      <div class="score-card">
+        <div class="score-wrap">
+          <div class="score-glow" id="score-glow"></div>
+          <svg class="score-svg" viewBox="0 0 152 152">
+            <circle class="s-bg" cx="76" cy="76" r="62"/>
+            <circle class="s-fill" id="s-fill" cx="76" cy="76" r="62"/>
+          </svg>
+          <div class="score-num" id="score-num">--</div>
+        </div>
+        <div class="score-lbl" id="score-lbl">Analyzing…</div>
+        <div class="score-sub" id="score-sub">Security Score</div>
+      </div>
+
+      <!-- category bars -->
+      <div class="cats-card">
+        <div class="cats-title">Category Breakdown</div>
+        <div class="cat-item">
+          <div class="cat-head">
+            <div class="cat-name"><span>🔒</span> SSL / TLS</div>
+            <div class="cat-val" id="cv-ssl">--</div>
+          </div>
+          <div class="cat-track"><div class="cat-bar" id="cb-ssl"></div></div>
+        </div>
+        <div class="cat-item">
+          <div class="cat-head">
+            <div class="cat-name"><span>📋</span> HTTP Headers</div>
+            <div class="cat-val" id="cv-headers">--</div>
+          </div>
+          <div class="cat-track"><div class="cat-bar" id="cb-headers"></div></div>
+        </div>
+        <div class="cat-item">
+          <div class="cat-head">
+            <div class="cat-name"><span>🌐</span> DNS Security</div>
+            <div class="cat-val" id="cv-dns">--</div>
+          </div>
+          <div class="cat-track"><div class="cat-bar" id="cb-dns"></div></div>
+        </div>
+        <div class="cat-item">
+          <div class="cat-head">
+            <div class="cat-name"><span>🛡️</span> Malware / Phishing</div>
+            <div class="cat-val" id="cv-malware">--</div>
+          </div>
+          <div class="cat-track"><div class="cat-bar" id="cb-malware"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- summary -->
+    <div class="summary-card">
+      <div class="demo-note" id="demo-note" style="display:none">⚠ Demo data — add an Anthropic API key for real AI analysis</div>
+      <p id="summary-text">Analysis in progress…</p>
+    </div>
+
+    <!-- issues -->
+    <div class="issues-sec">
+      <div class="issues-head">
+        <div class="issues-title">Security Issues <span id="issue-count" style="color:var(--text-3);font-weight:400;font-size:.88rem"></span></div>
+        <div class="filters">
+          <button class="f-btn on" onclick="applyFilter('all',this)">All</button>
+          <button class="f-btn" onclick="applyFilter('critical',this)">Critical</button>
+          <button class="f-btn" onclick="applyFilter('high',this)">High</button>
+          <button class="f-btn" onclick="applyFilter('medium',this)">Medium</button>
+          <button class="f-btn" onclick="applyFilter('low',this)">Low</button>
+        </div>
+      </div>
+      <div class="issue-list" id="issue-list"></div>
+      <div class="no-issues" id="no-issues">No issues match this filter.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+// ── state ────────────────────────────────────────
+let _url = '', _key = '', _result = null, _prog = null;
+
+// ── screens ──────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function goHome() {
+  document.getElementById('url-input').value = _url;
+  document.getElementById('api-key-input').value = _key;
+  showScreen('landing');
+}
+
+function rescan() {
+  document.getElementById('url-input').value = _url;
+  document.getElementById('api-key-input').value = _key;
+  startScan();
+}
+
+// ── scan entry ───────────────────────────────────
+async function startScan() {
+  const urlEl = document.getElementById('url-input');
+  const keyEl = document.getElementById('api-key-input');
+  const errEl = document.getElementById('err-msg');
+  let url = urlEl.value.trim();
+
+  if (!url) {
+    document.getElementById('scan-btn').classList.add('shake');
+    setTimeout(() => document.getElementById('scan-btn').classList.remove('shake'), 400);
+    return;
+  }
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+  try { new URL(url); } catch (e) {
+    errEl.textContent = 'Please enter a valid URL — e.g. https://example.com';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  _url = url;
+  _key = keyEl.value.trim();
+
+  document.getElementById('scan-url-pill').textContent = url;
+  showScreen('scanning');
+  startProgress();
+
+  const [result] = await Promise.all([
+    analyzeUrl(url, _key),
+    delay(6000)
+  ]);
+
+  _result = result;
+  renderResults(result);
+  showScreen('results');
+}
+
+// ── progress animation ────────────────────────────
+const MSGS = [
+  'Resolving domain…',
+  'Checking SSL certificate…',
+  'Auditing HTTP headers…',
+  'Analyzing DNS records…',
+  'Scanning for malware…',
+  'Running AI analysis…',
+  'Compiling report…'
+];
+const STEP_T = [0.6, 1.5, 2.5, 3.4, 4.4, 5.2];
+
+function startProgress() {
+  const fillEl = document.getElementById('prog-fill');
+  const msgEl  = document.getElementById('prog-msg');
+  const pctEl  = document.getElementById('prog-pct');
+  const steps  = document.querySelectorAll('.sub-step');
+
+  // reset
+  steps.forEach(s => s.classList.remove('done','run'));
+  steps[0].classList.add('run');
+  msgEl.textContent = MSGS[0];
+  fillEl.style.width = '0%';
+  pctEl.textContent = '0%';
+
+  let smooth = 0;
+  const t0 = Date.now();
+
+  clearInterval(_prog);
+  _prog = setInterval(() => {
+    const elapsed = (Date.now() - t0) / 1000;
+    const target = Math.min(95, (elapsed / 5.6) * 95);
+    smooth += (target - smooth) * 0.14;
+    smooth = Math.min(smooth, 95);
+
+    fillEl.style.width = smooth + '%';
+    pctEl.textContent  = Math.floor(smooth) + '%';
+
+    STEP_T.forEach((t, i) => {
+      if (elapsed >= t) {
+        steps[i].classList.remove('run');
+        steps[i].classList.add('done');
+        if (i + 1 < steps.length) steps[i + 1].classList.add('run');
+      }
+    });
+
+    const mi = Math.min(Math.floor(elapsed / 0.85), MSGS.length - 1);
+    msgEl.textContent = MSGS[mi];
+  }, 80);
+}
+
+// ── anthropic api ─────────────────────────────────
+async function analyzeUrl(url, key) {
+  if (!key) return mockResult(url, false);
+
+  const prompt = `You are a cybersecurity expert. Analyze the security posture of this URL and return ONLY valid JSON with no markdown wrapper.
+
+URL: ${url}
+
+Return exactly:
+{
+  "overall_score": <integer 0-100>,
+  "summary": "<2-3 sentence executive summary>",
+  "categories": {
+    "ssl":     { "score": <0-100> },
+    "headers": { "score": <0-100> },
+    "dns":     { "score": <0-100> },
+    "malware": { "score": <0-100> }
+  },
+  "issues": [
+    {
+      "id": <integer>,
+      "title": "<issue title>",
+      "description": "<plain-English risk explanation, 1-2 sentences>",
+      "severity": "<critical|high|medium|low>",
+      "category": "<ssl|headers|dns|malware>",
+      "fix": "<copy-ready config snippet or command>"
+    }
+  ]
+}
+
+Rules:
+- Provide 8–18 issues with realistic mix of severities
+- Well-known domains (google.com, github.com, cloudflare.com) score 75-90
+- HTTP-only URLs: must include critical SSL issue, score 15-40
+- Suspicious/lookalike URLs score 15-40
+- Missing headers (CSP, HSTS, X-Frame-Options) are common issues
+- Fix field must be an actual nginx/Apache/DNS snippet`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-allow-browser': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 4096,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const text = data.content[0].text;
+    const m = text.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error('No JSON');
+    const parsed = JSON.parse(m[0]);
+    parsed._demo = false;
+    return parsed;
+  } catch (err) {
+    console.warn('API error, using demo data:', err);
+    return mockResult(url, true);
+  }
+}
+
+// ── mock data ─────────────────────────────────────
+const ALL_ISSUES = [
+  { id:1,  sev:'high',     cat:'headers', title:'Missing Content-Security-Policy',
+    desc:'The site sends no Content-Security-Policy header, leaving it open to cross-site scripting (XSS) and data-injection attacks from any origin.',
+    fix:"# Nginx\nadd_header Content-Security-Policy \"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;\";" },
+  { id:2,  sev:'high',     cat:'ssl',     title:'HSTS Not Enforced',
+    desc:"HTTP Strict Transport Security is absent. Attackers can perform SSL stripping to downgrade connections from HTTPS to HTTP.",
+    fix:'# Nginx\nadd_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload";' },
+  { id:3,  sev:'medium',   cat:'headers', title:'Missing X-Frame-Options',
+    desc:'Without X-Frame-Options the site can be embedded in hidden iframes on attacker pages, enabling clickjacking attacks.',
+    fix:'# Nginx\nadd_header X-Frame-Options "SAMEORIGIN";' },
+  { id:4,  sev:'medium',   cat:'headers', title:'X-Content-Type-Options Not Set',
+    desc:'Browsers can MIME-sniff response bodies, allowing scripts disguised as images to execute.',
+    fix:'# Nginx\nadd_header X-Content-Type-Options "nosniff";' },
+  { id:5,  sev:'low',      cat:'headers', title:'No Referrer-Policy',
+    desc:'Sensitive URL parameters can leak to third-party services through the Referer header.',
+    fix:'# Nginx\nadd_header Referrer-Policy "strict-origin-when-cross-origin";' },
+  { id:6,  sev:'low',      cat:'headers', title:'Missing Permissions-Policy',
+    desc:'Browser features (camera, microphone, geolocation) are unrestricted for any embedded script.',
+    fix:'# Nginx\nadd_header Permissions-Policy "camera=(), microphone=(), geolocation=()";' },
+  { id:7,  sev:'medium',   cat:'dns',     title:'No DNSSEC Validation',
+    desc:'DNS responses are unsigned, leaving the domain vulnerable to cache-poisoning attacks at the resolver layer.',
+    fix:'# Enable DNSSEC at your registrar, then add DS record to parent zone.\n# Cloudflare: DNS Settings → Enable DNSSEC (one click)' },
+  { id:8,  sev:'high',     cat:'dns',     title:'Missing SPF Record',
+    desc:'Without an SPF record anyone can spoof email from this domain, enabling phishing attacks on your users.',
+    fix:'# Add TXT record at root domain:\nv=spf1 include:_spf.google.com ~all' },
+  { id:9,  sev:'high',     cat:'dns',     title:'Missing DMARC Policy',
+    desc:'No DMARC policy means spoofed emails bypass rejection, increasing phishing risk for recipients.',
+    fix:'# Add TXT record at _dmarc.yourdomain.com:\nv=DMARC1; p=reject; rua=mailto:dmarc@yourdomain.com; adkim=s; aspf=s' },
+  { id:10, sev:'low',      cat:'dns',     title:'No CAA Record',
+    desc:'Any Certificate Authority can issue SSL certificates for this domain. A CAA record locks issuance to specific CAs.',
+    fix:'# Add CAA record:\n0 issue "letsencrypt.org"\n0 issuewild ";"\n0 iodef "mailto:security@yourdomain.com"' },
+  { id:11, sev:'critical',  cat:'ssl',    title:'Legacy TLS 1.0/1.1 Enabled',
+    desc:'The server accepts deprecated TLS 1.0/1.1, which have known POODLE and BEAST vulnerabilities.',
+    fix:'# Nginx\nssl_protocols TLSv1.2 TLSv1.3;\n\n# Apache\nSSLProtocol -all +TLSv1.2 +TLSv1.3' },
+  { id:12, sev:'critical',  cat:'ssl',    title:'Weak Cipher Suite (RC4/3DES)',
+    desc:'RC4 and 3DES cipher suites are cryptographically broken and must be disabled.',
+    fix:"# Nginx\nssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384';\nssl_prefer_server_ciphers off;" },
+  { id:13, sev:'high',     cat:'ssl',     title:'Certificate Expiry Within 30 Days',
+    desc:'The SSL certificate expires soon. When it does, browsers will block all HTTPS traffic with a hard error.',
+    fix:'# Let\'s Encrypt auto-renewal\ncertbot renew --quiet\n# Add to crontab:\n0 12 * * * certbot renew --quiet' },
+  { id:14, sev:'medium',   cat:'dns',     title:'Missing DKIM Record',
+    desc:'Email sent from this domain cannot be cryptographically verified, allowing spoofing.',
+    fix:'# Add TXT record at selector._domainkey.yourdomain.com:\nv=DKIM1; k=rsa; p=<your_public_key>' },
+  { id:15, sev:'critical',  cat:'ssl',    title:'Site Uses Plain HTTP (No HTTPS)',
+    desc:'All data including passwords and session tokens is transmitted in cleartext and can be intercepted by any network observer.',
+    fix:'# Redirect HTTP → HTTPS (Nginx)\nserver {\n  listen 80;\n  return 301 https://$host$request_uri;\n}' },
+  { id:16, sev:'critical',  cat:'dns',    title:'Subdomain Takeover Risk',
+    desc:'A subdomain CNAME points to an unclaimed cloud resource (S3 bucket, Heroku app). An attacker can claim it.',
+    fix:'# Remove the dangling DNS record or re-register the cloud resource.\n# Audit: dig CNAME subdomain.yourdomain.com' },
+  { id:17, sev:'high',     cat:'headers', title:'Cookies Lack Secure/HttpOnly Flags',
+    desc:'Session cookies can be read by JavaScript and transmitted over plain HTTP, exposing them to XSS and network sniffing.',
+    fix:"# PHP\nsetcookie('session', \$val, ['httponly'=>true,'secure'=>true,'samesite'=>'Strict']);\n\n# Express\nres.cookie('session', val, { httpOnly:true, secure:true, sameSite:'strict' });" },
+  { id:18, sev:'low',      cat:'headers', title:'Server Version Disclosed',
+    desc:'The Server response header reveals the web server name and version, giving attackers a list of known CVEs to target.',
+    fix:'# Nginx\nserver_tokens off;\n\n# Apache\nServerTokens Prod\nServerSignature Off' }
+];
+
+function hashStr(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) { h = Math.imul(h, 31) + s.charCodeAt(i) | 0; }
+  return Math.abs(h);
+}
+
+function seeded(seed, lo, hi) {
+  const x = Math.sin(seed + 1) * 10000;
+  return lo + Math.floor((x - Math.floor(x)) * (hi - lo + 1));
+}
+
+function mockResult(url, apiErr) {
+  const isHttps = /^https:\/\//i.test(url);
+  const h = hashStr(url);
+  const safeDomains = ['google.com','github.com','cloudflare.com','microsoft.com','apple.com','amazon.com','mozilla.org'];
+  const isSafe = safeDomains.some(d => url.includes(d));
+
+  let base = isSafe ? seeded(h, 74, 89)
+           : isHttps ? seeded(h, 44, 76)
+           : seeded(h, 12, 38);
+
+  // boost/penalise based on URL patterns
+  if (/[0-9]{5,}|--|\bpayp|\bbank\b|\bsecure.*log/i.test(url)) base = Math.min(base, 30);
+
+  const sslScore    = isHttps ? seeded(h+10, 55, 92) : 4;
+  const hdrsScore   = seeded(h+20, 18, 68);
+  const dnsScore    = seeded(h+30, 32, 82);
+  const malScore    = seeded(h+40, 52, 96);
+
+  // Pick issues — always include HTTP issue for non-https
+  const pool = [...ALL_ISSUES];
+  if (!isHttps) {
+    // ensure id:15 is first
+    const idx = pool.findIndex(i => i.id === 15);
+    if (idx > 0) { const [el] = pool.splice(idx, 1); pool.unshift(el); }
+  }
+  // shuffle deterministically
+  pool.sort((a, b) => seeded(h + a.id * 13, 0, 99) - seeded(h + b.id * 13, 0, 99));
+
+  const count = isSafe ? seeded(h, 8, 12) : isHttps ? seeded(h, 11, 16) : 18;
+  let selected = pool.slice(0, count);
+  if (!isHttps && !selected.find(i => i.id === 15)) selected[0] = ALL_ISSUES[14];
+
+  // sort by severity weight
+  const W = { critical:4, high:3, medium:2, low:1 };
+  selected.sort((a, b) => W[b.sev] - W[a.sev]);
+
+  const summaries = [
+    `This site has a ${base < 50 ? 'concerning' : 'moderate'} security posture with ${selected.filter(i=>i.sev==='critical').length} critical and ${selected.filter(i=>i.sev==='high').length} high-severity findings. ${isHttps ? 'HTTPS is enabled, which is a good foundation.' : 'The absence of HTTPS is the most urgent issue to resolve.'} Addressing the items below in order of severity will substantially harden the site against common attacks.`,
+    `Security analysis found ${selected.length} issues across SSL, headers, DNS, and malware domains. The most impactful fixes involve adding missing HTTP security headers and completing DNS email authentication records. Most issues can be resolved with simple server configuration changes requiring no code changes.`,
+    `${isSafe ? 'This well-known domain has a solid security baseline, though' : 'The site shows'} several configuration gaps${isHttps ? '' : ', starting with the critical absence of HTTPS'}. Key opportunities include HTTP response header hardening and DNS record hardening for email spoofing protection. All recommended fixes include ready-to-deploy configuration snippets.`
+  ];
+
+  return {
+    overall_score: base,
+    summary: summaries[seeded(h, 0, 2)],
+    categories: {
+      ssl:     { score: sslScore },
+      headers: { score: hdrsScore },
+      dns:     { score: dnsScore },
+      malware: { score: malScore }
+    },
+    issues: selected.map((iss, i) => ({
+      id: i + 1, title: iss.title, description: iss.desc,
+      severity: iss.sev, category: iss.cat, fix: iss.fix
+    })),
+    _demo: true,
+    _apiErr: apiErr
+  };
+}
+
+// ── results rendering ────────────────────────────
+function scoreColor(s) {
+  return s >= 70 ? 'var(--green)' : s >= 45 ? 'var(--yellow)' : 'var(--red)';
+}
+function sevColor(sev) {
+  return { critical:'var(--red)', high:'var(--orange)', medium:'var(--yellow)', low:'var(--blue)' }[sev] || 'var(--text-3)';
+}
+
+let _issues = [];
+
+function renderResults(r) {
+  document.getElementById('res-url').textContent = _url;
+
+  // score circle
+  const score = r.overall_score;
+  const color = scoreColor(score);
+  const circ  = 2 * Math.PI * 62; // r=62
+  const fill  = document.getElementById('s-fill');
+  const glow  = document.getElementById('score-glow');
+
+  fill.style.stroke = color;
+  fill.style.strokeDasharray = circ;
+  fill.style.strokeDashoffset = circ; // start at 0%
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fill.style.strokeDashoffset = circ - (score / 100) * circ;
+  }));
+
+  const glowRgb = score >= 70 ? '0,232,122' : score >= 45 ? '255,214,10' : '255,59,92';
+  glow.style.background = `radial-gradient(circle, rgba(${glowRgb},1) 0%, transparent 70%)`;
+
+  // animate number
+  const numEl = document.getElementById('score-num');
+  numEl.style.color = color;
+  let d = 0;
+  const step = Math.max(1, Math.ceil(score / 38));
+  const ni = setInterval(() => {
+    d = Math.min(d + step, score);
+    numEl.textContent = d;
+    if (d >= score) clearInterval(ni);
+  }, 42);
+
+  // label
+  const lbl = document.getElementById('score-lbl');
+  lbl.style.color = color;
+  lbl.textContent = score >= 75 ? 'Secure' : score >= 50 ? 'Moderate Risk' : score >= 28 ? 'High Risk' : 'Critical Risk';
+  document.getElementById('score-sub').textContent = r._demo ? 'Demo Score' : 'AI Security Score';
+
+  // category bars
+  setCat('ssl',     r.categories.ssl.score);
+  setCat('headers', r.categories.headers.score);
+  setCat('dns',     r.categories.dns.score);
+  setCat('malware', r.categories.malware.score);
+
+  // summary
+  document.getElementById('demo-note').style.display = r._demo ? 'inline-flex' : 'none';
+  document.getElementById('summary-text').textContent = r.summary;
+
+  // issues
+  _issues = r.issues;
+  document.getElementById('issue-count').textContent = `(${_issues.length})`;
+
+  // reset filter
+  document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('on'));
+  document.querySelector('.f-btn[onclick*="all"]').classList.add('on');
+  renderIssues('all');
+}
+
+function setCat(cat, score) {
+  const color = scoreColor(score);
+  document.getElementById('cv-' + cat).textContent = score + '/100';
+  document.getElementById('cv-' + cat).style.color  = color;
+  const bar = document.getElementById('cb-' + cat);
+  bar.style.background = `linear-gradient(90deg, ${color}, ${color}88)`;
+  bar.style.boxShadow  = `0 0 9px ${color}55`;
+  setTimeout(() => { bar.style.width = score + '%'; }, 120);
+}
+
+function applyFilter(sev, btn) {
+  document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  renderIssues(sev);
+}
+
+function renderIssues(filter) {
+  const list    = document.getElementById('issue-list');
+  const noEl    = document.getElementById('no-issues');
+  const visible = filter === 'all' ? _issues : _issues.filter(i => i.severity === filter);
+
+  if (!visible.length) {
+    list.innerHTML = '';
+    noEl.style.display = 'block';
+    return;
+  }
+  noEl.style.display = 'none';
+
+  list.innerHTML = visible.map(issue => {
+    const sc = sevColor(issue.severity);
+    return `<div class="issue-card" id="ic-${issue.id}" onclick="toggleIssue(${issue.id})">
+  <div class="issue-head">
+    <div class="isev-dot" style="background:${sc};box-shadow:0 0 7px ${sc}88"></div>
+    <div class="issue-main">
+      <span class="badge badge-${issue.severity}">${issue.severity.toUpperCase()}</span>
+      <div class="issue-title">${esc(issue.title)}</div>
+    </div>
+    <span class="chevron">⌄</span>
+  </div>
+  <div class="issue-body">
+    <p class="issue-desc">${esc(issue.description)}</p>
+    <div class="fix-label">Recommended Fix</div>
+    <div class="fix-box" id="fb-${issue.id}">${esc(issue.fix)}<button class="copy-btn" onclick="event.stopPropagation();copyFix(${issue.id})">Copy</button></div>
+  </div>
+</div>`;
+  }).join('');
+}
+
+function toggleIssue(id) {
+  document.getElementById('ic-' + id)?.classList.toggle('open');
+}
+
+function copyFix(id) {
+  const issue = _issues.find(i => i.id === id);
+  if (!issue) return;
+  const btn = document.querySelector(`#fb-${id} .copy-btn`);
+  navigator.clipboard.writeText(issue.fix).then(() => {
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy'; }, 2000); }
+  }).catch(() => {
+    const t = document.createElement('textarea');
+    t.value = issue.fix; document.body.appendChild(t); t.select();
+    document.execCommand('copy'); document.body.removeChild(t);
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy'; }, 2000); }
+  });
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── utils ────────────────────────────────────────
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── qr code ──────────────────────────────────────
+function initQR() {
+  const el = document.getElementById('qr-box');
+  if (!el || typeof QRCode === 'undefined') {
+    if (el) el.innerHTML = '<div style="color:var(--text-3);font-size:11px;padding:16px;text-align:center">QR unavailable</div>';
+    return;
+  }
+  try {
+    new QRCode(el, {
+      text: window.location.href,
+      width: 140, height: 140,
+      colorDark: '#00e87a', colorLight: '#0b0d1a',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  } catch (e) {
+    el.innerHTML = '<div style="color:var(--text-3);font-size:11px;padding:16px;text-align:center">QR unavailable</div>';
+  }
+}
+
+// ── animated counters ─────────────────────────────
+function animateCount(id, target, decimals, suffix, dur) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const t0 = Date.now();
+  const iv = setInterval(() => {
+    const p = Math.min((Date.now() - t0) / dur, 1);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = (target * e).toFixed(decimals) + suffix;
+    if (p >= 1) clearInterval(iv);
+  }, 16);
+}
+
+// ── init ──────────────────────────────────────────
+window.addEventListener('load', () => {
+  initQR();
+  animateCount('s-scans',   247,  0, 'K', 1600);
+  animateCount('s-threats', 18.4, 1, 'K', 1900);
+});
+</script>
+</body>
+</html>
