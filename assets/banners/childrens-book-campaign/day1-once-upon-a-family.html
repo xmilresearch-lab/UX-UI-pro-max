@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Day 1 — Once Upon a Family</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1080px; height: 1080px; overflow: hidden;
+    font-family: 'Lato', sans-serif;
+    background: #1a0a02;
+  }
+
+  .canvas {
+    width: 1080px; height: 1080px;
+    position: relative; overflow: hidden;
+  }
+
+  /* Impressionist oil painting background */
+  .bg-layer {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 30%, #d4760a 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 20% 60%, #c4530a 0%, transparent 55%),
+      radial-gradient(ellipse 50% 50% at 80% 50%, #8b3a0f 0%, transparent 50%),
+      radial-gradient(ellipse 70% 80% at 50% 80%, #1a0a02 0%, #2d1205 40%, transparent 70%),
+      radial-gradient(ellipse 100% 60% at 50% 0%, #f0a030 0%, #c47020 30%, transparent 60%),
+      linear-gradient(185deg, #0d1a2e 0%, #1e2d1a 25%, #3d1e08 45%, #8b4513 65%, #d4870a 80%, #f5c842 100%);
+  }
+
+  /* Painterly texture overlay using SVG filter */
+  .texture-layer {
+    position: absolute; inset: 0;
+    filter: url(#oilpaint);
+    opacity: 0.35;
+    background:
+      repeating-linear-gradient(
+        45deg,
+        transparent, transparent 2px,
+        rgba(255,200,80,0.08) 2px, rgba(255,200,80,0.08) 4px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        transparent, transparent 3px,
+        rgba(80,40,10,0.06) 3px, rgba(80,40,10,0.06) 6px
+      );
+  }
+
+  /* Glowing street lamps */
+  .lamp { position: absolute; }
+  .lamp-left { left: 60px; top: 80px; }
+  .lamp-right { right: 60px; top: 80px; }
+
+  .lamp-glow {
+    position: absolute;
+    border-radius: 50%;
+    animation: flicker 3s ease-in-out infinite alternate;
+  }
+  .lamp-left .lamp-glow { width: 180px; height: 180px; top: -30px; left: -70px;
+    background: radial-gradient(circle, rgba(255,220,100,0.5) 0%, rgba(255,160,30,0.2) 40%, transparent 70%); }
+  .lamp-right .lamp-glow { width: 180px; height: 180px; top: -30px; left: -70px;
+    background: radial-gradient(circle, rgba(255,220,100,0.5) 0%, rgba(255,160,30,0.2) 40%, transparent 70%); }
+
+  @keyframes flicker { 0% { opacity: 0.85; } 100% { opacity: 1; } }
+
+  /* Tree silhouettes */
+  .trees { position: absolute; inset: 0; pointer-events: none; }
+
+  /* Atmospheric fog/bokeh */
+  .bokeh { position: absolute; border-radius: 50%; filter: blur(40px); }
+  .bokeh-1 { width: 300px; height: 300px; top: -50px; left: 200px; background: rgba(255,200,80,0.12); }
+  .bokeh-2 { width: 200px; height: 200px; top: 100px; right: 150px; background: rgba(255,160,30,0.1); }
+  .bokeh-3 { width: 400px; height: 200px; bottom: 200px; left: 100px; background: rgba(139,69,19,0.15); }
+  .bokeh-4 { width: 250px; height: 250px; bottom: 0; right: 0; background: rgba(30,20,5,0.3); }
+
+  /* Dark vignette */
+  .vignette {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 90% 90% at 50% 50%, transparent 40%, rgba(0,0,0,0.7) 100%);
+  }
+
+  /* Family portrait area */
+  .portrait-area {
+    position: absolute;
+    bottom: 220px; left: 50%; transform: translateX(-50%);
+    width: 620px; height: 380px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 80px rgba(0,0,0,0.6), 0 0 0 3px rgba(255,200,80,0.3);
+  }
+  .portrait-area img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    filter: saturate(1.2) contrast(1.1);
+  }
+  .portrait-shimmer {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,220,100,0.15) 0%, transparent 50%, rgba(139,69,19,0.2) 100%);
+  }
+  .portrait-placeholder {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, #3d1e08 0%, #8b4513 40%, #d4870a 70%, #f5c842 100%);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,220,100,0.4);
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; text-align: center; padding: 20px;
+    font-style: italic;
+  }
+
+  /* Text content */
+  .content {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; padding: 60px 80px;
+  }
+
+  .day-badge {
+    background: rgba(255,200,80,0.9);
+    color: #1a0a02;
+    font-family: 'Lato', sans-serif;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase;
+    padding: 8px 22px; border-radius: 50px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 20px rgba(255,200,80,0.4);
+  }
+
+  .headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 86px; font-weight: 900;
+    color: #fff8e8;
+    text-align: center;
+    line-height: 0.95;
+    text-shadow:
+      0 4px 30px rgba(0,0,0,0.8),
+      0 0 60px rgba(255,200,80,0.3);
+    letter-spacing: -1px;
+    margin-bottom: 0;
+  }
+  .headline em {
+    display: block;
+    font-style: italic;
+    color: #f5c842;
+    font-size: 96px;
+    line-height: 1;
+  }
+
+  .subheadline {
+    font-family: 'Lato', sans-serif;
+    font-size: 22px; font-weight: 300;
+    color: rgba(255,240,200,0.9);
+    letter-spacing: 4px; text-transform: uppercase;
+    margin-top: 16px;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  }
+
+  .bottom-content {
+    position: absolute;
+    bottom: 50px; left: 0; right: 0;
+    text-align: center; padding: 0 80px;
+  }
+
+  .tagline {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px; font-style: italic;
+    color: rgba(255,230,160,0.85);
+    margin-bottom: 10px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.7);
+  }
+
+  .cta-line {
+    font-family: 'Lato', sans-serif;
+    font-size: 13px; font-weight: 400;
+    color: rgba(255,220,100,0.7);
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+
+  /* Decorative divider */
+  .divider {
+    display: flex; align-items: center; gap: 16px;
+    margin: 14px auto;
+    width: 300px;
+  }
+  .divider-line { flex: 1; height: 1px; background: rgba(255,200,80,0.4); }
+  .divider-diamond {
+    width: 8px; height: 8px;
+    background: rgba(255,200,80,0.7);
+    transform: rotate(45deg);
+  }
+
+  svg.filters { position: absolute; width: 0; height: 0; }
+</style>
+</head>
+<body>
+<svg class="filters">
+  <defs>
+    <filter id="oilpaint">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feBlend in="SourceGraphic" mode="overlay"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="canvas">
+  <!-- Background layers -->
+  <div class="bg-layer"></div>
+  <div class="texture-layer"></div>
+
+  <!-- Bokeh lights -->
+  <div class="bokeh bokeh-1"></div>
+  <div class="bokeh bokeh-2"></div>
+  <div class="bokeh bokeh-3"></div>
+  <div class="bokeh bokeh-4"></div>
+
+  <!-- Street lamp glows -->
+  <div class="lamp lamp-left"><div class="lamp-glow"></div></div>
+  <div class="lamp lamp-right"><div class="lamp-glow"></div></div>
+
+  <!-- Vignette -->
+  <div class="vignette"></div>
+
+  <!-- Family portrait -->
+  <div class="portrait-area">
+    <div class="portrait-placeholder">[ Place family portrait here ]<br><br>Impressionist oil painting style<br>multicultural family — twilight park</div>
+    <div class="portrait-shimmer"></div>
+  </div>
+
+  <!-- Main text content -->
+  <div class="content">
+    <div class="day-badge">Day 1 of 5 · Campaign Launch</div>
+    <div class="headline">
+      Once Upon
+      <em>a Family</em>
+    </div>
+    <div class="subheadline">A Story That Feels Like Home</div>
+  </div>
+
+  <!-- Bottom content -->
+  <div class="bottom-content">
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-diamond"></div>
+      <div class="divider-line"></div>
+    </div>
+    <p class="tagline">"The children's book your family will treasure forever."</p>
+    <p class="cta-line">A beautifully illustrated story · Ages 4–8</p>
+  </div>
+</div>
+</body>
+</html>

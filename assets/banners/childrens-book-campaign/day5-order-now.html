@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Day 5 — Stories That Bring Families Closer</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1080px; height: 1080px; overflow: hidden; background: #05100d; }
+
+  .canvas { width: 1080px; height: 1080px; position: relative; overflow: hidden; }
+
+  .bg-layer {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 5%, #f0a030 0%, #c47020 20%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 10% 40%, #8b4513 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 90% 35%, #5a2a00 0%, transparent 55%),
+      radial-gradient(ellipse 80% 60% at 50% 80%, #05100d 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 50% 50%, #1a3d20 0%, transparent 50%),
+      linear-gradient(175deg, #020810 0%, #0d1a10 20%, #1a3d0a 40%, #5a3a00 60%, #c47020 75%, #f5c842 85%, #fff0c0 95%, #f5c842 100%);
+  }
+
+  /* Bokeh circles floating like in the prompt */
+  .bokeh-circle {
+    position: absolute; border-radius: 50%;
+    background: rgba(255,220,80,0.12); filter: blur(8px);
+    animation: drift 5s ease-in-out infinite alternate;
+  }
+  .bc1 { width: 60px; height: 60px; top: 10%; left: 8%; animation-delay: 0s; }
+  .bc2 { width: 40px; height: 40px; top: 20%; left: 30%; animation-delay: 1s; }
+  .bc3 { width: 80px; height: 80px; top: 8%; right: 20%; animation-delay: 2s; }
+  .bc4 { width: 50px; height: 50px; top: 30%; right: 10%; animation-delay: 0.5s; }
+  .bc5 { width: 35px; height: 35px; top: 15%; left: 60%; animation-delay: 1.5s; }
+  .bc6 { width: 45px; height: 45px; top: 25%; left: 50%; animation-delay: 3s; background: rgba(255,160,40,0.15); }
+
+  @keyframes drift {
+    0% { transform: translateY(0); opacity: 0.6; }
+    100% { transform: translateY(-20px); opacity: 1; }
+  }
+
+  .bokeh { position: absolute; border-radius: 50%; filter: blur(60px); }
+  .b1 { width: 600px; height: 300px; top: -80px; left: 50%; transform: translateX(-50%); background: rgba(240,160,48,0.22); }
+  .b2 { width: 300px; height: 300px; top: 100px; left: 0; background: rgba(90,58,0,0.25); }
+  .b3 { width: 300px; height: 300px; top: 100px; right: 0; background: rgba(90,42,0,0.25); }
+  .b4 { width: 700px; height: 250px; bottom: 0; left: 50%; transform: translateX(-50%); background: rgba(5,16,13,0.6); }
+
+  .vignette {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 92% 92% at 50% 50%, transparent 30%, rgba(5,16,13,0.82) 100%);
+  }
+
+  /* Portrait */
+  .portrait-area {
+    position: absolute;
+    bottom: 195px; left: 50%; transform: translateX(-50%);
+    width: 540px; height: 320px;
+    border-radius: 16px; overflow: hidden;
+    box-shadow:
+      0 0 0 3px rgba(255,200,80,0.5),
+      0 0 40px rgba(255,160,40,0.4),
+      0 20px 80px rgba(0,0,0,0.8);
+  }
+  .portrait-placeholder {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, #020810 0%, #0d1a10 30%, #1a3d0a 60%, #c47020 100%);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,200,80,0.4); font-family: 'Playfair Display', serif;
+    font-size: 17px; text-align: center; padding: 20px; font-style: italic;
+  }
+  .portrait-shimmer {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,200,80,0.15) 0%, transparent 50%, rgba(30,80,20,0.15) 100%);
+  }
+
+  /* Content */
+  .content {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; padding: 48px 80px;
+  }
+
+  .day-badge {
+    background: linear-gradient(135deg, #c47020, #f5c842);
+    color: #12050a;
+    font-size: 12px; font-weight: 900;
+    letter-spacing: 3px; text-transform: uppercase;
+    padding: 8px 22px; border-radius: 50px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 20px rgba(245,200,66,0.5);
+  }
+
+  .subhead {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px; font-style: italic; font-weight: 400;
+    color: rgba(255,220,160,0.9); text-align: center;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+  }
+
+  .headline {
+    font-family: 'Lato', sans-serif;
+    font-size: 110px; font-weight: 900;
+    color: #fff; text-align: center;
+    line-height: 0.9;
+    text-shadow:
+      0 6px 40px rgba(0,0,0,0.9),
+      0 0 60px rgba(255,160,40,0.4),
+      4px 4px 0 rgba(200,112,32,0.6);
+    letter-spacing: -3px;
+    text-transform: uppercase;
+  }
+
+  .headline-sub {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 400;
+    color: #f5c842; text-align: center;
+    letter-spacing: 3px; text-transform: uppercase;
+    margin-top: 10px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+  }
+
+  /* Checklist */
+  .checklist {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+    margin-top: 14px;
+  }
+  .check-item {
+    font-family: 'Lato', sans-serif;
+    font-size: 16px; font-weight: 400;
+    color: rgba(255,230,180,0.85);
+    letter-spacing: 1px;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+  }
+  .check-item::before { content: "✓ "; color: #f5c842; font-weight: 700; }
+
+  /* CTA Button */
+  .cta-button {
+    position: absolute;
+    bottom: 58px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, #c47020, #f5c842, #c47020);
+    background-size: 200% 100%;
+    color: #12050a;
+    font-family: 'Lato', sans-serif;
+    font-size: 20px; font-weight: 900;
+    letter-spacing: 3px; text-transform: uppercase;
+    padding: 18px 64px; border-radius: 60px;
+    box-shadow:
+      0 8px 40px rgba(245,200,66,0.5),
+      0 4px 20px rgba(0,0,0,0.4),
+      inset 0 1px 0 rgba(255,255,200,0.4);
+    white-space: nowrap;
+  }
+  .cta-button::after {
+    content: " →";
+    font-size: 22px;
+  }
+
+  .fine-print {
+    position: absolute;
+    bottom: 30px; left: 50%; transform: translateX(-50%);
+    font-family: 'Lato', sans-serif;
+    font-size: 11px; font-weight: 300;
+    color: rgba(255,200,80,0.5); letter-spacing: 2px; text-transform: uppercase;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <div class="bg-layer"></div>
+  <div class="bokeh b1"></div>
+  <div class="bokeh b2"></div>
+  <div class="bokeh b3"></div>
+  <div class="bokeh b4"></div>
+  <div class="bokeh-circle bc1"></div>
+  <div class="bokeh-circle bc2"></div>
+  <div class="bokeh-circle bc3"></div>
+  <div class="bokeh-circle bc4"></div>
+  <div class="bokeh-circle bc5"></div>
+  <div class="bokeh-circle bc6"></div>
+  <div class="vignette"></div>
+
+  <div class="portrait-area">
+    <div class="portrait-placeholder">[ Family portrait here ]<br><br>Impressionist oil painting · twilight park<br>warm golden sunset atmosphere</div>
+    <div class="portrait-shimmer"></div>
+  </div>
+
+  <div class="content">
+    <div class="day-badge">Final Day · Last Chance</div>
+    <div class="subhead">Stories That Bring Families Closer</div>
+    <div class="headline">Order<br>Now</div>
+    <div class="headline-sub">Available Everywhere Books Are Sold</div>
+    <div class="checklist">
+      <div class="check-item">Ages 4–8  &nbsp;·&nbsp; Beautifully Illustrated</div>
+      <div class="check-item">A Family Favorite &nbsp;·&nbsp; Perfect for Bedtime</div>
+    </div>
+  </div>
+
+  <div class="cta-button">Get Your Copy Today</div>
+  <div class="fine-print">Limited time · Free shipping on orders over $25</div>
+</div>
+</body>
+</html>

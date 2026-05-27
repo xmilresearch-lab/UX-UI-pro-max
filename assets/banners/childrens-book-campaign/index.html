@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Children's Book — 5-Day Ad Campaign</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d0a04;
+    color: #fff8e8;
+    font-family: 'Lato', sans-serif;
+    min-height: 100vh;
+    padding: 60px 40px;
+  }
+
+  header { text-align: center; margin-bottom: 60px; }
+  .campaign-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase;
+    color: #f5c842; margin-bottom: 16px;
+  }
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 52px; font-weight: 900;
+    color: #fff8e8; line-height: 1.1; margin-bottom: 16px;
+  }
+  h1 em { font-style: italic; color: #f5c842; }
+  .tagline { font-size: 18px; font-weight: 300; color: rgba(255,220,160,0.75); letter-spacing: 2px; }
+
+  .divider { width: 200px; height: 1px; background: rgba(255,200,80,0.3); margin: 30px auto; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,200,80,0.15);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .card:hover { transform: translateY(-4px); border-color: rgba(255,200,80,0.4); }
+
+  .card-preview {
+    height: 220px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; color: rgba(255,200,80,0.4);
+    font-family: 'Playfair Display', serif; font-style: italic;
+    text-align: center; padding: 20px;
+    position: relative; overflow: hidden;
+  }
+
+  .day1-bg { background: linear-gradient(135deg, #0d1a2e 0%, #3d1e08 45%, #d4870a 80%, #f5c842 100%); }
+  .day2-bg { background: linear-gradient(135deg, #04080f 0%, #1e0d40 40%, #a05c0a 80%, #e8c060 100%); }
+  .day3-bg { background: linear-gradient(135deg, #050d1a 0%, #0a2040 25%, #0d4020 50%, #2d0a40 75%, #050d1a 100%); }
+  .day4-bg { background: linear-gradient(135deg, #12050a 0%, #2d0a1a 30%, #8b4a00 65%, #e8c060 100%); }
+  .day5-bg { background: linear-gradient(135deg, #020810 0%, #1a3d0a 40%, #c47020 75%, #f5c842 100%); }
+
+  .day-number {
+    position: absolute; top: 14px; left: 14px;
+    font-family: 'Lato', sans-serif; font-size: 10px;
+    font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    background: rgba(255,200,80,0.9); color: #12050a;
+    padding: 5px 12px; border-radius: 20px;
+  }
+
+  .preview-text { color: rgba(255,240,200,0.5); }
+
+  .card-body { padding: 24px 28px 28px; }
+  .card-theme {
+    font-family: 'Lato', sans-serif;
+    font-size: 10px; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; color: #f5c842;
+    margin-bottom: 10px;
+  }
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px; font-weight: 900;
+    color: #fff8e8; margin-bottom: 10px; line-height: 1.1;
+  }
+  .card-copy {
+    font-size: 14px; font-weight: 300;
+    color: rgba(255,220,160,0.75); line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .card-hook {
+    font-style: italic; font-family: 'Playfair Display', serif;
+    font-size: 15px; color: rgba(255,220,160,0.7);
+    border-left: 2px solid rgba(255,200,80,0.4);
+    padding-left: 14px; margin-bottom: 20px;
+  }
+  .card-link {
+    display: inline-block;
+    font-size: 12px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: #f5c842;
+    text-decoration: none;
+    border: 1px solid rgba(255,200,80,0.4);
+    padding: 9px 20px; border-radius: 30px;
+    transition: background 0.2s;
+  }
+  .card-link:hover { background: rgba(255,200,80,0.1); }
+
+  .canva-links { margin-top: 10px; }
+  .canva-link {
+    display: inline-block; font-size: 11px; font-weight: 400;
+    color: rgba(255,200,80,0.5); text-decoration: none;
+    letter-spacing: 1px; margin-left: 14px;
+    transition: color 0.2s;
+  }
+  .canva-link:hover { color: rgba(255,200,80,0.9); }
+
+  footer { text-align: center; margin-top: 70px; padding-top: 40px;
+    border-top: 1px solid rgba(255,200,80,0.15); }
+  .footer-title { font-family: 'Playfair Display', serif; font-size: 20px;
+    font-style: italic; color: rgba(255,220,160,0.6); margin-bottom: 16px; }
+  .footer-note { font-size: 12px; font-weight: 300; color: rgba(255,200,80,0.4);
+    letter-spacing: 2px; text-transform: uppercase; line-height: 2; }
+</style>
+</head>
+<body>
+<header>
+  <div class="campaign-label">5-Day Social Media Ad Campaign</div>
+  <h1>A Story Made For<br><em>Your Family</em></h1>
+  <p class="tagline">Children's Book · Ages 4–8 · Instagram & Facebook</p>
+  <div class="divider"></div>
+</header>
+
+<div class="grid">
+
+  <!-- Day 1 -->
+  <div class="card">
+    <div class="card-preview day1-bg">
+      <div class="day-number">Day 1</div>
+      <div class="preview-text">Twilight park · glowing streetlamps<br>multicultural family · autumn gold</div>
+    </div>
+    <div class="card-body">
+      <div class="card-theme">Campaign Launch · Awareness</div>
+      <div class="card-title">Once Upon a Family</div>
+      <div class="card-hook">"A story that feels like home."</div>
+      <p class="card-copy">Introduce your family and the book. Warm, inviting, emotionally resonant. Establish the visual identity of the campaign with the impressionist family portrait at golden hour.</p>
+      <a href="day1-once-upon-a-family.html" class="card-link">Preview Banner →</a>
+      <div class="canva-links">
+        <a href="https://www.canva.com/d/rWoErsRl7Ij8CLz" class="canva-link" target="_blank">Edit in Canva ↗</a>
+        <a href="https://www.canva.com/d/8hO2IskH28J3e6Q" class="canva-link" target="_blank">View ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day 2 -->
+  <div class="card">
+    <div class="card-preview day2-bg">
+      <div class="day-number">Day 2</div>
+      <div class="preview-text">Bedroom at night · glowing storybook<br>stars through window · golden lamplight</div>
+    </div>
+    <div class="card-body">
+      <div class="card-theme">Engagement · Emotional Connection</div>
+      <div class="card-title">Read Together Tonight</div>
+      <div class="card-hook">"The story your little one will ask for every single night."</div>
+      <p class="card-copy">Capture the magic of bedtime reading. Target parents who cherish quiet moments with their children. Cozy, tender, nostalgic mood.</p>
+      <a href="day2-read-together-tonight.html" class="card-link">Preview Banner →</a>
+      <div class="canva-links">
+        <a href="https://www.canva.com/d/e-mT1rqMwWJdzNc" class="canva-link" target="_blank">Edit in Canva ↗</a>
+        <a href="https://www.canva.com/d/0dTQjZ9zSupC8ie" class="canva-link" target="_blank">View ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day 3 -->
+  <div class="card">
+    <div class="card-preview day3-bg">
+      <div class="day-number">Day 3</div>
+      <div class="preview-text">Whimsical storybook world · fireflies<br>floating islands · enchanted forest</div>
+    </div>
+    <div class="card-body">
+      <div class="card-theme">Excitement · Child-Directed Appeal</div>
+      <div class="card-title">Adventures Await Every Page!</div>
+      <div class="card-hook">"Spark their curiosity — one page at a time."</div>
+      <p class="card-copy">Appeal directly to the child's imagination. Playful, energetic, colorful. Show the world inside the book. Target parents who want to inspire a love of reading.</p>
+      <a href="day3-adventures-await.html" class="card-link">Preview Banner →</a>
+      <div class="canva-links">
+        <a href="https://www.canva.com/d/QodmecJ33hqET7Q" class="canva-link" target="_blank">Edit in Canva ↗</a>
+        <a href="https://www.canva.com/d/Nc44bBXoMONjC12" class="canva-link" target="_blank">View ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day 4 -->
+  <div class="card">
+    <div class="card-preview day4-bg">
+      <div class="day-number">Day 4</div>
+      <div class="preview-text">Wrapped gift · golden bow · sparkles<br>warm bokeh · deep burgundy gold</div>
+    </div>
+    <div class="card-body">
+      <div class="card-theme">Consideration · Gift Intent</div>
+      <div class="card-title">A Gift They'll Remember Forever</div>
+      <div class="card-hook">"The perfect present for every child who loves stories."</div>
+      <p class="card-copy">Pivot to gifting. Target grandparents, aunts/uncles, friends buying for children. Luxurious, heartwarming tone. Drive gift consideration and wishlists.</p>
+      <a href="day4-a-gift-to-remember.html" class="card-link">Preview Banner →</a>
+      <div class="canva-links">
+        <a href="https://www.canva.com/d/vseIzOUE2KGmEys" class="canva-link" target="_blank">Edit in Canva ↗</a>
+        <a href="https://www.canva.com/d/Nc8va8QnhyBFCN9" class="canva-link" target="_blank">View ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day 5 -->
+  <div class="card">
+    <div class="card-preview day5-bg">
+      <div class="day-number">Day 5</div>
+      <div class="preview-text">Golden sunset · magical park · bokeh<br>warm urgency · conversion CTA</div>
+    </div>
+    <div class="card-body">
+      <div class="card-theme">Conversion · Direct Response</div>
+      <div class="card-title">Order Now</div>
+      <div class="card-hook">"Stories That Bring Families Closer"</div>
+      <p class="card-copy">Close the funnel. Strong CTA, urgency framing, benefit bullets. Retarget warm audiences from Days 1–4. Drive clicks to purchase page with golden-hour emotional close.</p>
+      <a href="day5-order-now.html" class="card-link">Preview Banner →</a>
+      <div class="canva-links">
+        <a href="https://www.canva.com/d/9F79A1oxtBnmUDl" class="canva-link" target="_blank">Edit in Canva ↗</a>
+        <a href="https://www.canva.com/d/eI1qKyzSz27zKEs" class="canva-link" target="_blank">View ↗</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p class="footer-title">"A Story Made For Your Family"</p>
+  <p class="footer-note">
+    Campaign: 5 Days · Format: Instagram / Facebook Post (1080×1080)<br>
+    Style: Impressionist Oil Painting · Palette: Gold, Amber, Deep Navy<br>
+    Target: Parents of children ages 4–8 · Grandparents · Gift buyers
+  </p>
+</footer>
+</body>
+</html>

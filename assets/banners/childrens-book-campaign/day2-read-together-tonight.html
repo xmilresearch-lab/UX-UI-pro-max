@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Day 2 — Read Together Tonight</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1080px; height: 1080px; overflow: hidden; background: #0a0814; }
+
+  .canvas { width: 1080px; height: 1080px; position: relative; overflow: hidden; }
+
+  .bg-layer {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 50% 40% at 65% 35%, #c4820a 0%, transparent 55%),
+      radial-gradient(ellipse 70% 50% at 30% 40%, #7a3e02 0%, transparent 60%),
+      radial-gradient(ellipse 80% 60% at 50% 60%, #1a1030 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 80% 20%, rgba(255,200,100,0.3) 0%, transparent 50%),
+      linear-gradient(200deg, #04080f 0%, #0d1a3a 20%, #1e0d40 40%, #3d1a00 65%, #a05c0a 80%, #e8c060 100%);
+  }
+
+  .stars {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 10%, rgba(255,240,200,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 5%, rgba(255,240,200,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 8%, rgba(255,240,200,0.9) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 3%, rgba(255,240,200,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 7%, rgba(255,240,200,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 4%, rgba(255,240,200,0.8) 0%, transparent 100%),
+      radial-gradient(2px 2px at 15% 15%, rgba(255,240,200,0.6) 0%, transparent 100%),
+      radial-gradient(2px 2px at 45% 12%, rgba(255,240,200,0.9) 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 11%, rgba(255,240,200,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 14%, rgba(255,240,200,0.7) 0%, transparent 100%);
+  }
+
+  .bokeh { position: absolute; border-radius: 50%; filter: blur(50px); }
+  .b1 { width: 350px; height: 350px; top: 100px; right: 80px; background: rgba(200,140,20,0.18); }
+  .b2 { width: 250px; height: 250px; bottom: 200px; left: 50px; background: rgba(100,60,5,0.2); }
+  .b3 { width: 200px; height: 200px; top: 50px; left: 200px; background: rgba(30,10,80,0.2); }
+  .b4 { width: 500px; height: 200px; bottom: 0; left: 50%; transform: translateX(-50%); background: rgba(10,5,20,0.4); }
+
+  /* Lamp glow from upper right */
+  .lamp-glow {
+    position: absolute; top: -60px; right: 80px;
+    width: 300px; height: 300px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,220,100,0.45) 0%, rgba(255,160,30,0.15) 40%, transparent 70%);
+    filter: blur(8px);
+  }
+
+  .vignette {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 85% 85% at 50% 50%, transparent 35%, rgba(0,0,0,0.75) 100%);
+  }
+
+  /* Book glow element */
+  .book-glow {
+    position: absolute;
+    bottom: 210px; left: 50%; transform: translateX(-50%);
+    width: 280px; height: 120px; border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(255,230,150,0.5) 0%, rgba(255,180,60,0.2) 50%, transparent 70%);
+    filter: blur(20px);
+  }
+
+  /* Portrait */
+  .portrait-area {
+    position: absolute;
+    bottom: 215px; left: 50%; transform: translateX(-50%);
+    width: 580px; height: 360px;
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 0 60px rgba(255,180,60,0.35), 0 20px 80px rgba(0,0,0,0.7), 0 0 0 2px rgba(255,200,100,0.25);
+  }
+  .portrait-placeholder {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, #0d1530 0%, #1e3060 30%, #3d1a00 60%, #a05c0a 100%);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,220,100,0.4); font-family: 'Playfair Display', serif;
+    font-size: 17px; text-align: center; padding: 20px; font-style: italic;
+  }
+  .portrait-shimmer {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,200,80,0.12) 0%, transparent 40%, rgba(30,10,80,0.2) 100%);
+  }
+
+  /* Content */
+  .content {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; padding: 55px 80px;
+  }
+
+  .day-badge {
+    background: rgba(180,120,20,0.85);
+    color: #fff8e8;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase;
+    padding: 8px 22px; border-radius: 50px;
+    margin-bottom: 22px;
+    border: 1px solid rgba(255,200,80,0.4);
+  }
+
+  .headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 78px; font-weight: 700;
+    color: #fff0d0; text-align: center;
+    line-height: 1; letter-spacing: -1px;
+    text-shadow: 0 4px 30px rgba(0,0,0,0.9), 0 0 60px rgba(255,180,60,0.25);
+  }
+  .headline em {
+    display: block; font-style: italic;
+    color: #f5c842; font-size: 90px; font-weight: 900;
+  }
+
+  .sub {
+    font-family: 'Lato', sans-serif;
+    font-size: 19px; font-weight: 300;
+    color: rgba(255,230,180,0.85);
+    letter-spacing: 5px; text-transform: uppercase;
+    margin-top: 14px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+  }
+
+  .bottom-content {
+    position: absolute; bottom: 45px;
+    left: 0; right: 0; text-align: center; padding: 0 80px;
+  }
+  .moon-deco { font-size: 28px; margin-bottom: 8px; opacity: 0.8; }
+  .tagline {
+    font-family: 'Playfair Display', serif; font-size: 20px; font-style: italic;
+    color: rgba(255,230,160,0.85);
+    margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.7);
+  }
+  .cta-line {
+    font-family: 'Lato', sans-serif; font-size: 12px; font-weight: 300;
+    color: rgba(255,200,100,0.65); letter-spacing: 2.5px; text-transform: uppercase;
+  }
+
+  .divider { display: flex; align-items: center; gap: 14px; margin: 10px auto; width: 240px; }
+  .dl { flex: 1; height: 1px; background: rgba(255,180,60,0.35); }
+  .ds { width: 6px; height: 6px; background: rgba(255,200,80,0.6); border-radius: 50%; }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <div class="bg-layer"></div>
+  <div class="stars"></div>
+  <div class="bokeh b1"></div>
+  <div class="bokeh b2"></div>
+  <div class="bokeh b3"></div>
+  <div class="bokeh b4"></div>
+  <div class="lamp-glow"></div>
+  <div class="book-glow"></div>
+  <div class="vignette"></div>
+
+  <div class="portrait-area">
+    <div class="portrait-placeholder">[ Family portrait here ]<br><br>Impressionist oil painting · warm golden light<br>bedtime storybook scene</div>
+    <div class="portrait-shimmer"></div>
+  </div>
+
+  <div class="content">
+    <div class="day-badge">Day 2 of 5 · Bedtime Magic</div>
+    <div class="headline">
+      Read Together
+      <em>Tonight</em>
+    </div>
+    <div class="sub">Bedtime Just Got Magical</div>
+  </div>
+
+  <div class="bottom-content">
+    <div class="moon-deco">🌙</div>
+    <div class="divider"><div class="dl"></div><div class="ds"></div><div class="dl"></div></div>
+    <p class="tagline">"The story your little one will ask for every single night."</p>
+    <p class="cta-line">A beautifully illustrated children's book · Ages 4–8</p>
+  </div>
+</div>
+</body>
+</html>
